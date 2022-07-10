@@ -1,5 +1,5 @@
 #include "mcpch.h"
-#include "Minecraft/Core/Layer/GameLayer.h"
+#include "Minecraft/Layer/GameLayer.h"
 
 #include "Minecraft/Renderer/Renderer.h"
 
