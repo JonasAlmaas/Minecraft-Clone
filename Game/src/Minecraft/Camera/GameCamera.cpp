@@ -50,7 +50,7 @@ namespace Moon {
 		}
 
 		// Move Down
-		if (Input::IsKeyPressed(Key::LeftControl))
+		if (Input::IsKeyPressed(Key::LeftShift))
 		{
 			m_Position.z -= m_MoveSpeed * ts;
 		}
