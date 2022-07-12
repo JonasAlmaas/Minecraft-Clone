@@ -12,6 +12,9 @@ bin-int/
 **.vcxproj.filters
 **.vcxproj.user
 
+# ImGui
+**/imgui.ini
+
 # Cache
 **/cache
 **/__pycache__
