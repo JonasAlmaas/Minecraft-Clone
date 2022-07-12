@@ -61,14 +61,6 @@ void main()
 	uv.x = float(textureIndex.x) * tileSize + tileSize * float(fullUV.x);
 	uv.y = tileSize * 15.0 + tileSize * float(fullUV.y) - tileSize * float(textureIndex.y);
 
-	/*
-	float centerPixleOffset = 1.0 / 512.0;
-	vec2 halfPixelCorrection;
-	halfPixelCorrection.x = -centerPixleOffset * float(fullUV.x) + centerPixleOffset * float(1 - fullUV.x);
-	halfPixelCorrection.y = -centerPixleOffset * float(fullUV.y) + centerPixleOffset * float(1 - fullUV.y);
-	uv += halfPixelCorrection;
-	*/
-
 	Output.UV = uv;
 
 
