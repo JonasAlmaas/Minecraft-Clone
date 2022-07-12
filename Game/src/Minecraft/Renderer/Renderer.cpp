@@ -27,7 +27,7 @@ namespace Minecraft {
 
 	void Renderer::Init()
 	{
-		s_Data.BlockShader = Shader::Create("Content/Shaders/Block.glsl");
+		s_Data.BlockShader = Shader::Create("Content/Shaders/Minecraft/Chunk.glsl");
 
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
 		s_Data.ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 1);
