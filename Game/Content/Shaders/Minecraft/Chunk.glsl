@@ -53,23 +53,24 @@ layout (location = 0) out VertexOutput Output;
 void main()
 {
 	// -- Unpack UV --
-	uvec2 fullUV;
-	fullUV.x = (a_Position & 0x00080000) >> 19;
-	fullUV.y = (a_Position & 0x00100000) >> 20;
-
-	uvec2 textureIndex;
-	textureIndex.x = (a_TextureIndex & 0x0000000F);
-	textureIndex.y = ((a_TextureIndex & 0x000000F0) >> 4);
-
-	vec2 tileSize;
-	tileSize.x = 1.0 / 32.0;
-	tileSize.y = 1.0 / 16.0;
+	uvec2 fullUV = uvec2((a_Position & 0x00080000) >> 19, (a_Position & 0x00100000) >> 20);
+	uvec2 textureIndex = uvec2(a_TextureIndex & 0x0000000F, (a_TextureIndex & 0x000000F0) >> 4);
+	float tileSize = 1.0 / 16.0;
 
 	vec2 uv;
-	uv.x = float(a_TextureIndex & 0x0000000F) * tileSize.x + tileSize.x * float(fullUV.x);
-	uv.y = (tileSize.y * 15.0 + tileSize.y * float(fullUV.y)) - tileSize.y * float(textureIndex.y);
+	uv.x = float(textureIndex.x) * tileSize + tileSize * float(fullUV.x);
+	uv.y = tileSize * 15.0 + tileSize * float(fullUV.y) - tileSize * float(textureIndex.y);
+
+	/*
+	float centerPixleOffset = 1.0 / 512.0;
+	vec2 halfPixelCorrection;
+	halfPixelCorrection.x = -centerPixleOffset * float(fullUV.x) + centerPixleOffset * float(1 - fullUV.x);
+	halfPixelCorrection.y = -centerPixleOffset * float(fullUV.y) + centerPixleOffset * float(1 - fullUV.y);
+	uv += halfPixelCorrection;
+	*/
 
 	Output.UV = uv;
+
 
 	// -- Unpack Color --
 	float r = (a_RGBI & 0x000000FF) / 255.0;
