@@ -15,7 +15,6 @@ VulkanRequirements.Validate()
 
 print("\nUpdating submodules...")
 subprocess.call(["git", "submodule", "update", "--init", "--recursive"])
-subprocess.call(["git", "submodule", "update", "--remote"])
 
 if platform.system() == "Windows":
     print("\nRunning premake...")
