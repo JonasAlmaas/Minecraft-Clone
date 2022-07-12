@@ -14,6 +14,12 @@ namespace Minecraft {
 	Chunk::Chunk(const Int2& chunkPosition)
 		: m_ChunkPosition(chunkPosition)
 	{
+		GenerateBlocks();
+		GenerateVertexArray();
+	}
+
+	void Chunk::GenerateBlocks()
+	{
 		// Generate Chunk Blocks
 		for (uint8_t x = 0; x < 16; x++)
 		{
@@ -21,18 +27,21 @@ namespace Minecraft {
 			{
 				for (uint8_t z = 0; z < 4; z++)
 				{
-					m_Blocks[{ x, y, z }] = { Block::Type::Grass, { x, y, z } };
+					m_Blocks[{ x, y, z }] = Block::Type::Grass;
 				}
 			}
 		}
+	}
 
+	void Chunk::GenerateVertexArray()
+	{
 		m_VertexArray = VertexArray::Create();
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(Block::Vertex));
 
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Int, "Packed Local Position" },
 			{ ShaderDataType::Int, "Color RGBI" },
-		});
+			});
 
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
@@ -58,8 +67,7 @@ namespace Minecraft {
 						continue;
 					}
 
-					Block& block = m_Blocks.at({ x, y, z });
-					Int3 blockPosition = block.GetPosition();
+					//Block::Type blockType = m_Blocks.at({ x, y, z });
 
 					// Look for all neighboring blocks
 					// If the neighboring block does not exist, draw a face there
