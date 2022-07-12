@@ -25,11 +25,12 @@ namespace Minecraft {
 		{
 			for (uint8_t y = 0; y < 16; y++)
 			{
+				m_Blocks[{ x, y, 5 }] = Block::Type::Grass;
 				m_Blocks[{ x, y, 4 }] = Block::Type::Dirt;
 				m_Blocks[{ x, y, 3 }] = Block::Type::Dirt;
-				m_Blocks[{ x, y, 2 }] = Block::Type::Dirt;
-				m_Blocks[{ x, y, 1 }] = Block::Type::Dirt;
-				m_Blocks[{ x, y, 0 }] = Block::Type::Dirt;
+				m_Blocks[{ x, y, 2 }] = Block::Type::Stone;
+				m_Blocks[{ x, y, 1 }] = Block::Type::Stone;
+				m_Blocks[{ x, y, 0 }] = Block::Type::Stone;
 			}
 		}
 	}
@@ -43,7 +44,7 @@ namespace Minecraft {
 			{ ShaderDataType::Int, "Packed Local Position" },
 			{ ShaderDataType::Int, "Texture Index" },
 			{ ShaderDataType::Int, "Color RGBI" },
-			});
+		});
 
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
