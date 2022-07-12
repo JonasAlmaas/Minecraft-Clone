@@ -12,9 +12,15 @@ namespace Minecraft::Block {
 		Stone,
 	};
 
+	enum class Texture
+	{
+		GrassTop = 0,
+	};
+
 	struct Vertex
 	{
 		uint32_t LocalPosition;
+		uint32_t TextureIndex;
 		uint32_t RGBI;
 	};
 

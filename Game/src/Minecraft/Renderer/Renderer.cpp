@@ -7,6 +7,7 @@ namespace Minecraft {
 	struct RendererData
 	{
 		Ref<Shader> BlockShader;
+		Ref<Texture2D> BlockTextureAtlas;
 
 		struct CameraData
 		{
@@ -29,6 +30,8 @@ namespace Minecraft {
 	{
 		s_Data.BlockShader = Shader::Create("Content/Shaders/Minecraft/Chunk.glsl");
 
+		s_Data.BlockTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrain-atlas.png");
+
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
 		s_Data.ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 1);
 	}
@@ -38,6 +41,7 @@ namespace Minecraft {
 		s_Data.CameraBuffer.ViewProjection = viewProjectionMatrix;
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
 
+		s_Data.BlockTextureAtlas->Bind();
 		s_Data.BlockShader->Bind();
 
 		for (auto& chunk : world->m_Chunks)
