@@ -4,42 +4,27 @@
 
 namespace Minecraft {
 
-	struct BlockVertex
+	World::World()
+		: m_Seed(Random::UInt())
 	{
-		glm::vec3 Position;
-		glm::vec4 Color;
-	};
+		GenerateWorld();
+	}
 
 	World::World(uint64_t seed)
 		: m_Seed(seed)
 	{
-		m_VA = VertexArray::Create();
+		GenerateWorld();
+	}
 
-		//float vertices[4 * 6 * sizeof(BlockVertex)] = {
-		float vertices[4 * sizeof(BlockVertex)] = {
-			-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-			 0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-			-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-		};
-
-		Ref<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
-
-		vb->SetLayout({
-			{ ShaderDataType::Float3, "Position XYZ" },
-			{ ShaderDataType::Float4, "Color RGBA" },
-		});
-
-		m_VA->AddVertexBuffer(vb);
-
-
-		uint32_t indices[6] = {
-			0, 1, 2,
-			0, 2, 3,
-		};
-
-		Ref<IndexBuffer> ib = IndexBuffer::Create(indices, 6);
-		m_VA->SetIndexBuffer(ib);
+	void World::GenerateWorld()
+	{
+		for (uint32_t x = 0; x < 6; x++)
+		{
+			for (uint32_t y = 0; y < 6; y++)
+			{
+				m_Chunks.emplace_back(CreateRef<Chunk>(Int2(x, y)));
+			}
+		}
 	}
 
 }
