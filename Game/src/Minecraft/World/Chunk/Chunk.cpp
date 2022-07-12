@@ -1,9 +1,6 @@
 #include "mcpch.h"
 #include "Minecraft/World/Chunk/Chunk.h"
 
-// TODO: Figure out why it doesn't make sence to me with 16x16 chunks
-// Or in other words, figure out a nice way to have 16x16 chunks
-
 
 namespace Minecraft {
 
@@ -18,11 +15,9 @@ namespace Minecraft {
 		: m_ChunkPosition(chunkPosition)
 	{
 		// Generate Chunk Blocks
-		//for (uint8_t x = 0; x < 16; x++)
-		for (uint8_t x = 0; x < 15; x++)
+		for (uint8_t x = 0; x < 16; x++)
 		{
-			//for (uint8_t y = 0; y < 16; y++)
-			for (uint8_t y = 0; y < 15; y++)
+			for (uint8_t y = 0; y < 16; y++)
 			{
 				for (uint8_t z = 0; z < 4; z++)
 				{
@@ -31,14 +26,11 @@ namespace Minecraft {
 			}
 		}
 
-		m_Blocks[{ 0, 0, 0 }] = { Block::Type::Grass, { 0, 0, 0 } };
-
 		m_VertexArray = VertexArray::Create();
-
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(Block::Vertex));
 
 		vertexBuffer->SetLayout({
-			{ ShaderDataType::Int, "Local Position XYZ" },
+			{ ShaderDataType::Int, "Packed Local Position" },
 			{ ShaderDataType::Int, "Color RGBI" },
 		});
 
@@ -50,21 +42,17 @@ namespace Minecraft {
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
 
-		//for (uint8_t x = 0; x < 16; x++)
-		for (uint8_t x = 0; x < 15; x++)
+		for (uint8_t x = 0; x < 16; x++)
 		{
-			//for (uint8_t y = 0; y < 16; y++)
-			for (uint8_t y = 0; y < 15; y++)
+			for (uint8_t y = 0; y < 16; y++)
 			{
-				//for (uint8_t z = 0; z < 256; z++)
-				for (uint8_t z = 0; z < 255; z++)
+				for (uint8_t z = 0; z < 256; z++)
 				{
 					// If the block does not exist
 					if (m_Blocks.find({ x, y, z }) == m_Blocks.end())
 					{
 						// This is to prevent the uint8 from wrapping around to 0 and making an infinite loop
-						//if (z == 255)
-						if (z == 254)
+						if (z == 255)
 							break;
 
 						continue;
@@ -79,19 +67,19 @@ namespace Minecraft {
 					// -- Top --
 					if (z == 255 || m_Blocks.find(Block::Position(x, y, z + 1)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
@@ -102,19 +90,19 @@ namespace Minecraft {
 					// -- Bottom --
 					if (m_Blocks.find(Block::Position(x, y, z - 1)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
@@ -125,19 +113,19 @@ namespace Minecraft {
 					// -- North --
 					if (m_Blocks.find(Block::Position(x, y + 1, z)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
@@ -148,19 +136,19 @@ namespace Minecraft {
 					// -- South --
 					if (m_Blocks.find(Block::Position(x, y - 1, z)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
@@ -171,19 +159,19 @@ namespace Minecraft {
 					// -- East --
 					if (m_Blocks.find(Block::Position(x + 1, y, z)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, true, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x + 1, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, true, false, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
@@ -194,19 +182,19 @@ namespace Minecraft {
 					// -- West --
 					if (m_Blocks.find(Block::Position(x - 1, y, z)) == m_Blocks.end())
 					{
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, false);
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, false);
 						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, false, true);
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
 						vertexBufferPtr++;
 
-						vertexBufferPtr->LocalXYZ = VertexPosition(x, y + 1, z + 1);
+						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, false, true, true);
 						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
 						vertexBufferPtr++;
 
@@ -215,8 +203,7 @@ namespace Minecraft {
 					}
 
 					// This is to prevent the uint8 from wrapping around to 0 and making an infinite loop
-					//if (z == 255)
-					if (z == 254)
+					if (z == 255)
 						break;
 				}
 			}

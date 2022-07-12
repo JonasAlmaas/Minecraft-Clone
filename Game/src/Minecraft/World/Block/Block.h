@@ -7,12 +7,14 @@ namespace Minecraft {
 	{
 		// X and Y are 4 bit each
 		// Z is 8 bit
-		uint8_t X, Y, Z;
+		uint8_t BlockX, BlockY, BlockZ;
 
-		VertexPosition(uint8_t x, uint8_t y, uint8_t z)
-			: X(x), Y(y), Z(z) {}
+		bool OffsetX, OffsetY, OffsetZ;
 
-		operator uint16_t () { return X + (Y << 4) + (Z << 8); }
+		VertexPosition(uint8_t blockX, uint8_t blockY, uint8_t blockZ, bool offsetX, bool offsetY, bool offsetZ)
+			: BlockX(blockX), BlockY(blockY), BlockZ(blockZ), OffsetX(offsetX), OffsetY(offsetY), OffsetZ(offsetZ) {}
+
+		operator uint32_t () { return BlockX + (BlockY << 4) + (BlockZ << 8) + (OffsetX << 16) + (OffsetY << 17) + (OffsetZ << 18); }
 	};
 
 	struct VertexColor
@@ -39,7 +41,7 @@ namespace Minecraft {
 
 		struct Vertex
 		{
-			uint32_t LocalXYZ;
+			uint32_t LocalPosition;
 			uint32_t RGBI;
 		};
 
