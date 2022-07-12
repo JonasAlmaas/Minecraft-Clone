@@ -36,7 +36,7 @@ namespace Minecraft {
 
 		// ---- Render ----
 
-		RenderCommand::SetClearColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+		RenderCommand::SetClearColor({ 0.431f, 0.8f, 1.0f, 1.0f });
 		RenderCommand::Clear();
 
 		Renderer::RenderWorld(m_World, m_Camera->GetViewProjection());
