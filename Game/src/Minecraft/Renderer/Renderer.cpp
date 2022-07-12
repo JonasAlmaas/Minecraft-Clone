@@ -34,6 +34,8 @@ namespace Minecraft {
 
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
 		s_Data.ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 1);
+
+		RenderCommand::SetMultisample(false);
 	}
 
 	void Renderer::RenderWorld(const Ref<World>& world, const glm::mat4& viewProjectionMatrix)
