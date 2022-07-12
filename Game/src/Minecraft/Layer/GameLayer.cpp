@@ -28,6 +28,8 @@ namespace Minecraft {
 
 	void GameLayer::OnUpdate(Timestep ts)
 	{
+		m_FrameTime = ts;
+
 		// ---- Update ----
 
 		m_Camera->OnUpdate(ts);
@@ -38,6 +40,16 @@ namespace Minecraft {
 		RenderCommand::Clear();
 
 		Renderer::RenderWorld(m_World, m_Camera->GetViewProjection());
+	}
+
+	void GameLayer::OnImGuiRender()
+	{
+		ImGui::Begin("Statistics");
+
+		ImGui::Text("Frame Time: %.2fms", m_FrameTime * 1000.0f);
+		ImGui::Text("Fps: %d", (int)(1.0f / m_FrameTime));
+
+		ImGui::End();
 	}
 
 	// -- Event Handling --
