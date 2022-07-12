@@ -14,3 +14,5 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+
+#include <Minecraft/Core/Types.h>
