@@ -41,7 +41,7 @@ namespace Moon {
 		bool OnWindowResizeEvent(WindowResizeEvent& e);
 
 	private:
-		float m_MoveSpeed = 4.0f;
+		float m_MoveSpeed = 6.0f;
 		float m_Sensitivity = 0.001f;
 
 		float m_LastMouseX = 0.0f;
