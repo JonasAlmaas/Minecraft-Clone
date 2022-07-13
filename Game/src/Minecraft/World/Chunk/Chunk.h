@@ -3,6 +3,7 @@
 using namespace Moon;
 
 #include "Minecraft/World/Block/Block.h"
+#include "Minecraft/World/Block/ChunkBlock.h"
 
 
 namespace Minecraft {
@@ -44,7 +45,7 @@ namespace Minecraft {
 	private:
 		Int2 m_ChunkPosition;
 
-		std::unordered_map<Block::Position, Block::Type> m_Blocks;
+		std::unordered_map<ChunkBlock::Position, Ref<Block>> m_Blocks;
 
 		Ref<VertexArray> m_VertexArray;
 

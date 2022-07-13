@@ -25,12 +25,13 @@ namespace Minecraft {
 		{
 			for (uint8_t y = 0; y < 16; y++)
 			{
-				m_Blocks[{ x, y, 5 }] = Block::Type::Grass;
-				m_Blocks[{ x, y, 4 }] = Block::Type::Dirt;
-				m_Blocks[{ x, y, 3 }] = Block::Type::Dirt;
-				m_Blocks[{ x, y, 2 }] = Block::Type::Stone;
-				m_Blocks[{ x, y, 1 }] = Block::Type::Stone;
-				m_Blocks[{ x, y, 0 }] = Block::Type::Stone;
+				m_Blocks[{ x, y, 6 }] = Block::Create(Block::Type::Grass);
+				m_Blocks[{ x, y, 5 }] = Block::Create(Block::Type::Dirt);
+				m_Blocks[{ x, y, 4 }] = Block::Create(Block::Type::Dirt);
+				m_Blocks[{ x, y, 3 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 2 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 1 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 0 }] = Block::Create(Block::Type::Bedrock);
 			}
 		}
 	}
@@ -38,7 +39,7 @@ namespace Minecraft {
 	void Chunk::GenerateVertexArray()
 	{
 		m_VertexArray = VertexArray::Create();
-		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(Block::Vertex));
+		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(ChunkBlock::Vertex));
 
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Int, "Packed Local Position" },
@@ -48,8 +49,8 @@ namespace Minecraft {
 
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
-		Block::Vertex* vertexBufferBase = new Block::Vertex[ChunkData::MaxVertices];
-		Block::Vertex* vertexBufferPtr = vertexBufferBase;
+		ChunkBlock::Vertex* vertexBufferBase = new ChunkBlock::Vertex[ChunkData::MaxVertices];
+		ChunkBlock::Vertex* vertexBufferPtr = vertexBufferBase;
 
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
@@ -70,17 +71,16 @@ namespace Minecraft {
 						continue;
 					}
 
-					//Block::Type blockType = m_Blocks.at({ x, y, z });
-
-					Block::Texture texture = Block::Texture::GrassTop;
-					uint32_t textureIndex = (uint32_t)texture;
+					Ref<Block> block = m_Blocks.at({ x, y, z });
 
 					// Look for all neighboring blocks
 					// If the neighboring block does not exist, draw a face there
 
 					// -- Top --
-					if (z == 255 || m_Blocks.find(Block::Position(x, y, z + 1)) == m_Blocks.end())
+					if (z == 255 || m_Blocks.find(ChunkBlock::Position(x, y, z + 1)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Top);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 1, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
@@ -106,8 +106,10 @@ namespace Minecraft {
 					}
 
 					// -- Bottom --
-					if (m_Blocks.find(Block::Position(x, y, z - 1)) == m_Blocks.end())
+					if (z == 0 || m_Blocks.find(ChunkBlock::Position(x, y, z - 1)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Bottom);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 0, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
@@ -132,8 +134,10 @@ namespace Minecraft {
 						indexCount += 6;
 					}
 					// -- North --
-					if (m_Blocks.find(Block::Position(x, y + 1, z)) == m_Blocks.end())
+					if (m_Blocks.find(ChunkBlock::Position(x, y + 1, z)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::North);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
@@ -160,8 +164,10 @@ namespace Minecraft {
 
 
 					// -- South --
-					if (m_Blocks.find(Block::Position(x, y - 1, z)) == m_Blocks.end())
+					if (y == 0 || m_Blocks.find(ChunkBlock::Position(x, y - 1, z)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::South);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
@@ -187,8 +193,10 @@ namespace Minecraft {
 					}
 
 					// -- East --
-					if (m_Blocks.find(Block::Position(x + 1, y, z)) == m_Blocks.end())
+					if (m_Blocks.find(ChunkBlock::Position(x + 1, y, z)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::East);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
@@ -214,8 +222,10 @@ namespace Minecraft {
 					}
 
 					// -- West --
-					if (m_Blocks.find(Block::Position(x - 1, y, z)) == m_Blocks.end())
+					if (x == 0 || m_Blocks.find(ChunkBlock::Position(x - 1, y, z)) == m_Blocks.end())
 					{
+						uint16_t textureIndex = block->GetTextureIndex(Block::Face::West);
+
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
 						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
@@ -247,7 +257,7 @@ namespace Minecraft {
 			}
 		}
 
-		vertexBuffer->SetData(vertexBufferBase, vertexCount * sizeof(Block::Vertex));
+		vertexBuffer->SetData(vertexBufferBase, vertexCount * sizeof(ChunkBlock::Vertex));
 		delete[] vertexBufferBase;
 
 		uint32_t* indices = new uint32_t[indexCount];
