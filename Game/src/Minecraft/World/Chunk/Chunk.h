@@ -25,12 +25,12 @@ namespace Minecraft {
 
 		struct VertexColor
 		{
-			uint8_t R, G, B, I;
+			uint8_t R, G, B, V;
 
-			VertexColor(uint8_t r, uint8_t g, uint8_t b, uint8_t i)
-				: R(r), G(g), B(b), I(i) {}
+			VertexColor(uint8_t r, uint8_t g, uint8_t b, uint8_t v)
+				: R(r), G(g), B(b), V(v) {}
 
-			operator uint32_t () { return R + (G << 8) + (B << 16) + (I << 24); }
+			operator uint32_t () { return R + (G << 8) + (B << 16) + (V << 24); }
 		};
 
 	public:

@@ -16,7 +16,7 @@
 // 4 bit   4 bit
 // X       Y
 
-// Location 2 - RGBI
+// Location 2 - RGBV
 // 8 bit   16 bit   24 bit   32 bit
 // 8 bit   8 bit    8 bit    8 bit
 // R       G        B        I
@@ -29,7 +29,7 @@
 
 layout(location = 0) in uint a_Position;
 layout(location = 1) in uint a_TextureIndex;
-layout(location = 2) in uint a_RGBI;
+layout(location = 2) in uint a_RGBV;
 
 layout(std140, binding = 0) uniform Camera
 {
@@ -65,12 +65,12 @@ void main()
 
 
 	// -- Unpack Color --
-	float r = (a_RGBI & 0x000000FF) / 255.0;
-	float g = ((a_RGBI & 0x0000FF00) >> 8) / 255.0;
-	float b = ((a_RGBI & 0x00FF0000) >> 16) / 255.0;
-	float i = ((a_RGBI & 0xFF000000) >> 24) / 255.0;
+	float r = (a_RGBV & 0x000000FF) / 255.0;
+	float g = ((a_RGBV & 0x0000FF00) >> 8) / 255.0;
+	float b = ((a_RGBV & 0x00FF0000) >> 16) / 255.0;
+	float v = ((a_RGBV & 0xFF000000) >> 24) / 255.0;
 
-	Output.Color = vec4(r, g, b, i);
+	Output.Color = vec4(r, g, b, v);
 
 
 	// -- Unpack position --
@@ -109,7 +109,18 @@ layout (location = 0) in VertexOutput Input;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
+float Lerp(float x, float y, float a)
+{
+	return x + ((y - x) * a);
+}
+
+vec3 Lerp3(vec3 v1, vec3 v2, float a)
+{
+	return vec3(Lerp(v1.x, v2.x, a), Lerp(v1.y, v2.y, a), Lerp(v1.z, v2.z, a));
+}
+
 void main()
 {
-	o_Color = texture(u_Textures[0], Input.UV);
+	vec4 color = texture(u_Textures[0], Input.UV);
+	o_Color = vec4(Lerp3(color.xyz, Input.Color.xyz, Input.Color.a), color.a);
 }

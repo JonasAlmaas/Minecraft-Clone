@@ -44,7 +44,7 @@ namespace Minecraft {
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Int, "Packed Local Position" },
 			{ ShaderDataType::Int, "Texture Index" },
-			{ ShaderDataType::Int, "Color RGBI" },
+			{ ShaderDataType::Int, "Color RGBV" },
 		});
 
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
@@ -80,25 +80,26 @@ namespace Minecraft {
 					if (z == 255 || m_Blocks.find(ChunkBlock::Position(x, y, z + 1)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Top);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 1, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 1, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 1, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 1, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;
@@ -109,25 +110,26 @@ namespace Minecraft {
 					if (z == 0 || m_Blocks.find(ChunkBlock::Position(x, y, z - 1)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Bottom);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 0, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 0, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 0, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;
@@ -137,25 +139,26 @@ namespace Minecraft {
 					if (m_Blocks.find(ChunkBlock::Position(x, y + 1, z)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::North);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 0, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 1, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 1, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;
@@ -167,25 +170,26 @@ namespace Minecraft {
 					if (y == 0 || m_Blocks.find(ChunkBlock::Position(x, y - 1, z)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::South);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 0, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 1, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 1, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;
@@ -196,25 +200,26 @@ namespace Minecraft {
 					if (m_Blocks.find(ChunkBlock::Position(x + 1, y, z)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::East);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 0, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 1, 1, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 1, 0, 1, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;
@@ -225,25 +230,26 @@ namespace Minecraft {
 					if (x == 0 || m_Blocks.find(ChunkBlock::Position(x - 1, y, z)) == m_Blocks.end())
 					{
 						uint16_t textureIndex = block->GetTextureIndex(Block::Face::West);
+						uint32_t color = VertexColor(0, 0, 0, 0);
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 0, 0, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 0, 1, 0);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 0, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 0, 1, 1, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(255, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexBufferPtr->LocalPosition = VertexPosition(x, y, z, 0, 1, 1, 0, 1);
 						vertexBufferPtr->TextureIndex = textureIndex;
-						vertexBufferPtr->RGBI = VertexColor(0, 255, 0, 255);
+						vertexBufferPtr->RGBV = color;
 						vertexBufferPtr++;
 
 						vertexCount += 4;

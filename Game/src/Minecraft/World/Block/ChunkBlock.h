@@ -9,7 +9,7 @@ namespace Minecraft::ChunkBlock {
 	{
 		uint32_t LocalPosition;
 		uint32_t TextureIndex;
-		uint32_t RGBI;
+		uint32_t RGBV;
 	};
 
 	struct Position
