@@ -116,6 +116,8 @@ namespace Moon {
 		m_LastMouseY = e.GetY();
 
 		m_Pitch += m_Sensitivity * offsetY;
+		m_Pitch = glm::clamp<float>(m_Pitch, -glm::radians(180.0f), 0.0f);
+
 		m_Yaw += m_Sensitivity * offsetX;
 
 		return false;
