@@ -33,22 +33,46 @@ namespace Minecraft {
 			operator uint32_t () { return R + (G << 8) + (B << 16) + (V << 24); }
 		};
 
+		struct Position
+		{
+			int32_t X, Y;
+
+			Position(int32_t x, int32_t y)
+				: X(x), Y(y) {}
+
+			bool operator == (const Position& other) const
+			{
+				return X == other.X && Y == other.Y;
+			}
+		};
+
 	public:
-		Chunk(const Int2& chunkPosition);
+		Chunk(const Position& chunkPosition);
 
 		void GenerateBlocks();
 		void GenerateVertexArray();
 
-		const Int2 GetPosition() const { return m_ChunkPosition; }
-		const Ref<VertexArray>& GetVertexArray() const { return m_VertexArray; };
+		const Position GetPosition() const { return m_ChunkPosition; }
+		const Ref<VertexArray> GetVertexArray() const { return m_VertexArray; };
 
 	private:
-		Int2 m_ChunkPosition;
-
+		Position m_ChunkPosition;
+		Ref<VertexArray> m_VertexArray;
 		std::unordered_map<ChunkBlock::Position, Ref<Block>> m_Blocks;
 
-		Ref<VertexArray> m_VertexArray;
+	};
 
+
+}
+namespace std {
+
+	template<>
+	struct hash<Minecraft::Chunk::Position>
+	{
+		size_t operator()(const Minecraft::Chunk::Position& key) const
+		{
+			return hash<int>()(key.X + (key.Y << 32));
+		}
 	};
 
 }
