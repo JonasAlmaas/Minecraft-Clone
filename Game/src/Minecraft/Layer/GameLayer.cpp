@@ -23,12 +23,21 @@ namespace Minecraft {
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 
 		uint64_t seed = Random::UInt();
-		m_World = CreateRef<World>(seed);
+		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
 	}
 
 	void GameLayer::OnUpdate(Timestep ts)
 	{
 		m_FrameTime = ts;
+
+		// ---- Tick ----
+		float timeNow = Time::Get();
+		Timestep tickTimestep = timeNow - m_LastTickTime;
+		if (tickTimestep >= 1.0f / 20.0f)
+		{
+			m_World->Tick(tickTimestep);
+			m_LastTickTime = timeNow;
+		}
 
 		// ---- Update ----
 

@@ -25,6 +25,7 @@ namespace Minecraft {
 		Ref<GameCamera> m_Camera;
 
 		float m_FrameTime = 0;
+		float m_LastTickTime = 0;
 
 	};
 
