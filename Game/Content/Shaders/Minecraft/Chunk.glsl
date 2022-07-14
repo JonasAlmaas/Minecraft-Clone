@@ -23,8 +23,8 @@
 
 
 // TODO:
-// 1 bit          1 bit      1 bit          1 bit      1 bit          1 bit
-// SignNormalX    NormalX    SignNormalY    NormalY    SignNormalZ    NormalZ
+// 1 bit     1 bit     1 bit
+// NormalX   NormalY   NormalZ
 
 
 layout(location = 0) in uint a_Position;
@@ -86,8 +86,8 @@ void main()
 
 	// -- Calculate world position --
 	vec3 worldPos;
-	worldPos.x = float(u_ChunkX * 16 + localBlockPos.x + localBlockOffset.x);
-	worldPos.y = float(u_ChunkY * 16 + localBlockPos.y + localBlockOffset.y);
+	worldPos.x = float(u_ChunkX * 16 + int(localBlockPos.x + localBlockOffset.x));
+	worldPos.y = float(u_ChunkY * 16 + int(localBlockPos.y + localBlockOffset.y));
 	worldPos.z = float(localBlockPos.z + localBlockOffset.z);
 
 	gl_Position = u_ViewProjection * vec4(worldPos, 1.0);
