@@ -1,6 +1,8 @@
 #include "mcpch.h"
 #include "Minecraft/Renderer/Renderer.h"
 
+#include "Minecraft/World/Chunk/Chunk.h"
+
 
 namespace Minecraft {
 
@@ -18,7 +20,7 @@ namespace Minecraft {
 
 		struct ChunkPositionData
 		{
-			uint32_t X, Y;
+			int32_t X, Y;
 		};
 		ChunkPositionData ChunkPositionBuffer;
 		Ref<UniformBuffer> ChunkPositionUniformBuffer;
@@ -51,9 +53,9 @@ namespace Minecraft {
 		s_Data.BlockTextureAtlas->Bind();
 		s_Data.BlockShader->Bind();
 
-		for (auto& chunk : world->m_Chunks)
+		for (auto& chunk : world->m_RenderChunks)
 		{
-			Int2 chunkPos = chunk->GetPosition();
+			Chunk::Position chunkPos = chunk->GetPosition();
 
 			s_Data.ChunkPositionBuffer.X = chunkPos.X;
 			s_Data.ChunkPositionBuffer.Y = chunkPos.Y;
