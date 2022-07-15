@@ -37,11 +37,17 @@ namespace Moon {
 		void UpdateProjection();
 		void UpdateView();
 
+		bool OnKeyPressedEvent(KeyPressedEvent& e);
+		bool OnKeyReleasedEvent(KeyReleasedEvent& e);
+
 		bool OnMouseMovedEvent(MouseMovedEvent& e);
 		bool OnWindowResizeEvent(WindowResizeEvent& e);
 
 	private:
-		float m_MoveSpeed = 6.0f;
+		float m_MoveSpeedNormal = 10.0f;
+		float m_MoveSpeedFast = 100.0f;
+		float m_MoveSpeed = m_MoveSpeedNormal;
+
 		float m_Sensitivity = 0.001f;
 
 		float m_LastMouseX = 0.0f;

@@ -103,8 +103,29 @@ namespace Moon {
 	void GameCamera::OnEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<KeyPressedEvent>(ME_BIND_EVENT_FN(GameCamera::OnKeyPressedEvent));
+		dispatcher.Dispatch<KeyReleasedEvent>(ME_BIND_EVENT_FN(GameCamera::OnKeyReleasedEvent));
 		dispatcher.Dispatch<MouseMovedEvent>(ME_BIND_EVENT_FN(GameCamera::OnMouseMovedEvent));
 		dispatcher.Dispatch<WindowResizeEvent>(ME_BIND_EVENT_FN(GameCamera::OnWindowResizeEvent));
+	}
+
+	bool GameCamera::OnKeyPressedEvent(KeyPressedEvent& e)
+	{
+		if (e.IsRepeat())
+			return false;
+
+		if (e.GetKeyCode() == Key::LeftControl)
+			m_MoveSpeed = m_MoveSpeedFast;
+
+		return false;
+	}
+
+	bool GameCamera::OnKeyReleasedEvent(KeyReleasedEvent& e)
+	{
+		if (e.GetKeyCode() == Key::LeftControl)
+			m_MoveSpeed = m_MoveSpeedNormal;
+
+		return false;
 	}
 
 	bool GameCamera::OnMouseMovedEvent(MouseMovedEvent& e)
