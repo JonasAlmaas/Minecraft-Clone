@@ -15,10 +15,13 @@ namespace Minecraft {
 		virtual ~GameLayer() = default;
 
 		virtual void OnAttach() override;
-		virtual void OnDetach() override {};
+		virtual void OnDetach() override;
 		virtual void OnUpdate(Timestep ts) override;
 		virtual void OnImGuiRender() override;
 		virtual void OnEvent(Event& e) override;
+
+	private:
+		bool OnKeyPressedEvent(KeyPressedEvent& e);
 
 	private:
 		Ref<World> m_World = nullptr;

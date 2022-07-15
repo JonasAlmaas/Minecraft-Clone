@@ -1,7 +1,7 @@
 #include "mcpch.h"
 #include "Minecraft/Layer/GameLayer.h"
 
-#include "Minecraft/Renderer/Renderer.h"
+#include "Minecraft/Renderer/GameRenderer.h"
 
 namespace Minecraft {
 
@@ -12,7 +12,7 @@ namespace Minecraft {
 
 	void GameLayer::OnAttach()
 	{
-		Renderer::Init();
+		GameRenderer::Init();
 
 		Application::Get().GetWindow().DisableCursor();
 
@@ -24,6 +24,11 @@ namespace Minecraft {
 
 		uint64_t seed = Random::UInt();
 		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
+	}
+
+	void GameLayer::OnDetach()
+	{
+		GameRenderer::Shutdown();
 	}
 
 	void GameLayer::OnUpdate(Timestep ts)
@@ -48,7 +53,7 @@ namespace Minecraft {
 		RenderCommand::SetClearColor({ 0.431f, 0.8f, 1.0f, 1.0f });
 		RenderCommand::Clear();
 
-		Renderer::RenderWorld(m_World, m_Camera->GetViewProjection());
+		GameRenderer::RenderWorld(m_World, m_Camera->GetViewProjection());
 	}
 
 	void GameLayer::OnImGuiRender()
@@ -65,7 +70,22 @@ namespace Minecraft {
 
 	void GameLayer::OnEvent(Event& e)
 	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<KeyPressedEvent>(ME_BIND_EVENT_FN(GameLayer::OnKeyPressedEvent));
+
+
 		m_Camera->OnEvent(e);
+	}
+
+	bool GameLayer::OnKeyPressedEvent(KeyPressedEvent& e)
+	{
+		if (e.IsRepeat())
+			return false;
+
+		if (e.GetKeyCode() == Key::F5)
+			GameRenderer::ReloadShaders();
+
+		return false;
 	}
 
 }

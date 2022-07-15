@@ -7,10 +7,13 @@ using namespace Moon;
 
 namespace Minecraft {
 
-	class Renderer
+	class GameRenderer
 	{
 	public:
 		static void Init();
+		static void Shutdown();
+
+		static void ReloadShaders();
 
 		static void RenderWorld(const Ref<World>& world, const glm::mat4& viewProjectionMatrix);
 

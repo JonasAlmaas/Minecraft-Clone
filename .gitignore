@@ -16,5 +16,5 @@ bin-int/
 **/imgui.ini
 
 # Cache
-**/cache
+**/Cache
 **/__pycache__
