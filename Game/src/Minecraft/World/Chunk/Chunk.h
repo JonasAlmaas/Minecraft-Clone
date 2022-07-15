@@ -11,6 +11,8 @@ namespace Minecraft {
 	class Chunk
 	{
 	public:
+		using Position = Int2;
+
 		struct VertexPosition
 		{
 			uint8_t BlockX, BlockY, BlockZ;
@@ -31,19 +33,6 @@ namespace Minecraft {
 				: R(r), G(g), B(b), V(v) {}
 
 			operator uint32_t () { return R + (G << 8) + (B << 16) + (V << 24); }
-		};
-
-		struct Position
-		{
-			int32_t X, Y;
-
-			Position(int32_t x, int32_t y)
-				: X(x), Y(y) {}
-
-			bool operator == (const Position& other) const
-			{
-				return X == other.X && Y == other.Y;
-			}
 		};
 
 	public:
@@ -71,7 +60,7 @@ namespace std {
 	{
 		size_t operator()(const Minecraft::Chunk::Position& key) const
 		{
-			return hash<int>()(key.X + (key.Y << 32));
+			return hash<int>()(key.x + (key.y << 32));
 		}
 	};
 
