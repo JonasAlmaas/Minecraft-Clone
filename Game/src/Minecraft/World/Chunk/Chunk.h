@@ -13,6 +13,27 @@ namespace Minecraft {
 	public:
 		using Position = Int2;
 
+		struct PositionIterator
+		{
+		public:
+			PositionIterator(Position* ptr) : m_Ptr(ptr) {}
+
+			Position& operator*() const { return *m_Ptr; }
+			Position* operator->() { return m_Ptr; }
+
+			// Prefix increment
+			PositionIterator& operator++() { m_Ptr++; return *this; }
+
+			// Postfix increment
+			PositionIterator operator++(int) { PositionIterator tmp = *this; ++(*this); return tmp; }
+
+			friend bool operator== (const PositionIterator& a, const PositionIterator& b) { return a.m_Ptr == b.m_Ptr; };
+			friend bool operator!= (const PositionIterator& a, const PositionIterator& b) { return a.m_Ptr != b.m_Ptr; };
+
+		private:
+			Position* m_Ptr;
+		};
+
 		struct VertexPosition
 		{
 			uint8_t BlockX, BlockY, BlockZ;
