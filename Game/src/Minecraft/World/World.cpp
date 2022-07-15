@@ -7,61 +7,114 @@ namespace Minecraft {
 	World::World(uint64_t seed, const glm::vec3* playerPos)
 		: m_Seed(seed), m_PlayerPosition(playerPos)
 	{
+		// TODO: This has to be recreated every time the draw distance changes
+		m_RenderChunkBase = new Chunk::Position[(m_DrawDistance + m_DrawDistance + 1) * (m_DrawDistance + m_DrawDistance + 1)];
+		m_RenderChunkPtr = m_RenderChunkBase;
+
 		GenerateWorld();
+	}
+
+	World::~World()
+	{
+		delete[] m_RenderChunkBase;
 	}
 
 	void World::Tick(Timestep ts)
 	{
-		static int chunkDrawDistance = 4;
+		Chunk::Position currentPlayerChunkPosition = {
+			(int)glm::floor(m_PlayerPosition->x / 16.0f),
+			(int)glm::floor(m_PlayerPosition->y / 16.0f)
+		};
 
-		Int2 currentChunkPosition = { (int)glm::floor(m_PlayerPosition->x / 16.0f), (int)glm::floor(m_PlayerPosition->y / 16.0f) };
+		ChunkBlock::Position currentPlayerBlockPosition = {
+			(int)glm::floor(m_PlayerPosition->x) % 16,
+			(int)glm::floor(m_PlayerPosition->y) % 16,
+			(int)glm::floor(m_PlayerPosition->z)
+		};
 
 		// Move between chunks
-		if (currentChunkPosition != m_LastChunkPosition)
+		if (currentPlayerChunkPosition != m_PlayerChunkPosition)
 		{
-			m_LastChunkPosition = currentChunkPosition;
+			m_PlayerChunkPosition = currentPlayerChunkPosition;
 			m_GeneratingNewChunks = true;
+
+			OnCrossChunkBorder();
 		}
 
-		if (m_GeneratingNewChunks)
-			m_GeneratingNewChunks = !GenerateNewChunks();
-
-		//Int2 currentBlockPosition = { glm::floor<int>(m_PlayerPosition->x), glm::floor<int>(m_PlayerPosition->y / 16.0f) };
-
 		// Move between blocks
-		//ME_CORE_INFO("OnMoveToNewBlock, {}, {}, {}", m_LastBlockPosition.X, m_LastBlockPosition.Y, m_LastBlockPosition.Z);
+		if (currentPlayerBlockPosition != m_PlayerBlockPosition)
+		{
+			m_PlayerBlockPosition = currentPlayerBlockPosition;
+			OnCrossBlockBorder();
+		}
+
+		// Generate only one chunk every second, this is to prevent massive lag spikes
+		if (m_GeneratingNewChunks)
+			m_GeneratingNewChunks = !GenerateNewChunksFromRenderChunks();
 	}
 
-	bool World::GenerateNewChunks()
+	void World::OnCrossChunkBorder()
 	{
-		static int chunkDrawDistance = 4;
+		RecalculateRenderChunks();
+	}
 
-		for (int32_t x = m_LastChunkPosition.X - chunkDrawDistance; x < m_LastChunkPosition.X + chunkDrawDistance; x++)
+	void World::OnCrossBlockBorder()
+	{
+		// TODO: Sort transparent blocks within chunk back to front
+	}
+
+	bool World::GenerateNewChunksFromRenderChunks(bool allAtOnce)
+	{
+		for (auto& chunkPosition : *this)
 		{
-			for (int32_t y = m_LastChunkPosition.Y - chunkDrawDistance; y < m_LastChunkPosition.Y + chunkDrawDistance; y++)
+			if (m_Chunks.find(chunkPosition) == m_Chunks.end())
 			{
-				if (m_Chunks.find({ x, y }) == m_Chunks.end())
-				{
-					m_Chunks[{ x, y }] = CreateRef<Chunk>(Chunk::Position(x, y));
-					m_RenderChunks.push_back(m_Chunks[{ x, y }]);
+				m_Chunks[chunkPosition] = CreateRef<Chunk>(chunkPosition);
+
+				if (!allAtOnce)
 					return false;
-				}
 			}
 		}
 
 		return true;
 	}
 
-	void World::GenerateWorld()
+	void World::RecalculateRenderChunks()
 	{
-		for (int32_t x = -3; x < 3; x++)
+		/**
+		 * Added 0.5 to the radius, see link bellow to reasoning.
+		 * https://www.redblobgames.com/grids/circle-drawing/#aesthetics
+		 */
+		float radius = ((float)m_DrawDistance) + 0.5f;
+
+		// Reset render chunk pointer
+		m_RenderChunkPtr = m_RenderChunkBase;
+
+		for (uint16_t i = 0; i < m_DrawDistance; i++)
 		{
-			for (int32_t y = -3; y < 3; y++)
+			for (int x = m_PlayerChunkPosition.x - i; x <= m_PlayerChunkPosition.x + i; x++)
 			{
-				m_Chunks[{ x, y }] = CreateRef<Chunk>(Chunk::Position(x, y));
-				m_RenderChunks.push_back(m_Chunks[{ x, y }]);
+				for (int y = m_PlayerChunkPosition.y - i; y <= m_PlayerChunkPosition.y + i; y++)
+				{
+					Chunk::Position chunkPosition = { x, y };
+					if (chunkPosition.IsWithinRadius(m_PlayerChunkPosition, radius))
+					{
+						m_RenderChunkPtr->x = x;
+						m_RenderChunkPtr->y = y;
+						m_RenderChunkPtr++;
+					}
+
+					if (y != m_PlayerChunkPosition.y + i && x != m_PlayerChunkPosition.x - i && x != m_PlayerChunkPosition.x + i)
+						y = m_PlayerChunkPosition.y + i - 1;
+				}
 			}
 		}
+	}
+
+	void World::GenerateWorld()
+	{
+		RecalculateRenderChunks();
+		GenerateNewChunksFromRenderChunks(true);
 	}
 
 }
