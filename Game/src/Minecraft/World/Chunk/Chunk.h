@@ -11,7 +11,21 @@ namespace Minecraft {
 	class Chunk
 	{
 	public:
-		using Position = Int2;
+		struct Position : public Int2
+		{
+		public:
+			Position() : Int2() {}
+			Position(int x, int y) : Int2(x, y) {}
+
+			bool IsWithinRadius(Position& center, float radius)
+			{
+				// https://www.redblobgames.com/grids/circle-drawing/#distance-test
+				float dx = center.x - x;
+				float dy = center.y - y;
+				float distance_squared = dx * dx + dy * dy;
+				return distance_squared <= radius * radius;
+			}
+		};
 
 		struct PositionIterator
 		{
