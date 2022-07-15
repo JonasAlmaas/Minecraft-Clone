@@ -66,16 +66,16 @@ namespace Minecraft {
 		s_Data->BlockTextureAtlas->Bind();
 		s_Data->BlockShader->Bind();
 
-		for (auto& chunk : world->m_RenderChunks)
+		for (auto& chunkPosition : *world)
 		{
-			Chunk::Position chunkPos = chunk->GetPosition();
+			if (world->HasChunk(chunkPosition))
+			{
+				s_Data->ChunkPositionBuffer.X = chunkPosition.x;
+				s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
+				s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
 
-			s_Data->ChunkPositionBuffer.X = chunkPos.X;
-			s_Data->ChunkPositionBuffer.Y = chunkPos.Y;
-
-			s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
-
-			RenderCommand::DrawIndexed(chunk->GetVertexArray());
+				RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArray());
+			}
 		}
 	}
 
