@@ -5,24 +5,13 @@
 
 namespace Minecraft::ChunkBlock {
 
+	using Position = Int3;
+
 	struct Vertex
 	{
 		uint32_t LocalPosition;
 		uint32_t TextureIndex;
 		uint32_t RGBV;
-	};
-
-	struct Position
-	{
-		uint8_t X, Y, Z;
-
-		Position(uint8_t x, uint8_t y, uint8_t z)
-			: X(x), Y(y), Z(z) {}
-
-		bool operator == (const Position& other) const
-		{
-			return X == other.X && Y == other.Y && Z == other.Z;
-		}
 	};
 
 }
@@ -37,7 +26,7 @@ namespace std {
 	{
 		size_t operator()(const Minecraft::ChunkBlock::Position& key) const
 		{
-			return hash<uint16_t>()(key.X + (key.Y << 4) + (key.Z << 8));
+			return hash<uint16_t>()(key.x + (key.y << 4) + (key.z << 8));
 		}
 	};
 
