@@ -73,7 +73,6 @@ namespace Minecraft {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ME_BIND_EVENT_FN(GameLayer::OnKeyPressedEvent));
 
-
 		m_Camera->OnEvent(e);
 	}
 
@@ -82,8 +81,13 @@ namespace Minecraft {
 		if (e.IsRepeat())
 			return false;
 
-		if (e.GetKeyCode() == Key::F5)
-			GameRenderer::ReloadShaders();
+		switch (e.GetKeyCode())
+		{
+			case Key::F5:
+			{
+				GameRenderer::ReloadShaders();
+			}
+		}
 
 		return false;
 	}
