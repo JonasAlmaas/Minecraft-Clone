@@ -20,8 +20,8 @@ namespace Minecraft {
 			bool IsWithinRadius(Position& center, float radius)
 			{
 				// https://www.redblobgames.com/grids/circle-drawing/#distance-test
-				float dx = center.x - x;
-				float dy = center.y - y;
+				float dx = (float)(center.x - x);
+				float dy = (float)(center.y - y);
 				float distance_squared = dx * dx + dy * dy;
 				return distance_squared <= radius * radius;
 			}
@@ -95,7 +95,7 @@ namespace std {
 	{
 		size_t operator()(const Minecraft::Chunk::Position& key) const
 		{
-			return hash<int>()(key.x + (key.y << 32));
+			return hash<size_t>()(key.x | ((unsigned long long)key.y) << 32);
 		}
 	};
 
