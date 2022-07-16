@@ -24,7 +24,7 @@ namespace Minecraft {
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 
 		uint64_t seed = Random::UInt();
-		m_World = CreateRef<World>(seed, m_Camera->GetPositionValuePtr());
+		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
 	}
 
 	void GameLayer::OnDetach()
