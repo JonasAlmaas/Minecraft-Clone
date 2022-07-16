@@ -5,12 +5,10 @@
 namespace Moon {
 
 	GameCamera::GameCamera(float fov, float aspectRatio, float nearClip, float farClip)
-		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip)
+		: PerspectiveCamera(fov, aspectRatio, nearClip, farClip)
 	{
 		m_LastMouseX = Input::GetMouseX();
 		m_LastMouseY = Input::GetMouseY();
-
-		UpdateView();
 	}
 
 	void GameCamera::OnUpdate(Timestep ts)
@@ -56,46 +54,6 @@ namespace Moon {
 		}
 
 		UpdateView();
-	}
-
-	void GameCamera::SetViewportSize(float width, float height)
-	{
-		m_ViewportWidth = width;
-		m_ViewportHeight = height;
-		UpdateProjection();
-	}
-
-	glm::vec3 GameCamera::GetUpDirection() const
-	{
-		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-
-	glm::vec3 GameCamera::GetRightDirection() const
-	{
-		return glm::rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
-	}
-
-	glm::vec3 GameCamera::GetForwardDirection() const
-	{
-		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
-	}
-
-	glm::quat GameCamera::GetOrientation() const
-	{
-		return glm::quat(glm::vec3(-m_Pitch, 0.0f, -m_Yaw));
-	}
-
-	void GameCamera::UpdateProjection()
-	{
-		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-		m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
-	}
-
-	void GameCamera::UpdateView()
-	{
-		glm::quat orientation = GetOrientation();
-		m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
-		m_ViewMatrix = glm::inverse(m_ViewMatrix);
 	}
 
 	// -- Event Handling --
@@ -146,8 +104,8 @@ namespace Moon {
 
 	bool GameCamera::OnWindowResizeEvent(WindowResizeEvent& e)
 	{
-		m_ViewportWidth = e.GetWidth();
-		m_ViewportHeight = e.GetHeight();
+		m_ViewportWidth = (float)e.GetWidth();
+		m_ViewportHeight = (float)e.GetHeight();
 		return false;
 	}
 

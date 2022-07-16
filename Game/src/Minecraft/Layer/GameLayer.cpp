@@ -3,6 +3,7 @@
 
 #include "Minecraft/Renderer/GameRenderer.h"
 
+
 namespace Minecraft {
 
 	GameLayer::GameLayer()
@@ -18,12 +19,12 @@ namespace Minecraft {
 
 		m_Camera = CreateRef<GameCamera>();
 
-		float windowWidth = Application::Get().GetWindow().GetWidth();
-		float windowHeight = Application::Get().GetWindow().GetHeight();
+		float windowWidth = (float)Application::Get().GetWindow().GetWidth();
+		float windowHeight = (float)Application::Get().GetWindow().GetHeight();
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 
 		uint64_t seed = Random::UInt();
-		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
+		m_World = CreateRef<World>(seed, m_Camera->GetPositionValuePtr());
 	}
 
 	void GameLayer::OnDetach()
