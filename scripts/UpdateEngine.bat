@@ -1,9 +1,15 @@
-@REM @echo off
-cd ../Engine
+@echo off
+
+pushd %~dp0\..\Engine
 call git checkout dev
 call git pull
+popd
 
-cd ../scripts
+echo.
+echo Running premake...
 call Win-GenProjects.bat
+
+echo.
+echo Engine Update completed!
 
 PAUSE
