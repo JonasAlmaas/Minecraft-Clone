@@ -54,18 +54,12 @@ namespace Minecraft {
 			bool OffsetX, OffsetY, OffsetZ;
 			bool U, V;
 
-			VertexPosition(uint8_t blockX, uint8_t blockY, uint8_t blockZ, bool offsetX, bool offsetY, bool offsetZ, bool u, bool v)
-				: BlockX(blockX), BlockY(blockY), BlockZ(blockZ), OffsetX(offsetX), OffsetY(offsetY), OffsetZ(offsetZ), U(u), V(v) {}
-
 			operator uint32_t () { return BlockX + (BlockY << 4) + (BlockZ << 8) + (OffsetX << 16) + (OffsetY << 17) + (OffsetZ << 18) + (U << 19) + (V << 20); }
 		};
 
 		struct VertexColor
 		{
 			uint8_t R, G, B, V;
-
-			VertexColor(uint8_t r, uint8_t g, uint8_t b, uint8_t v)
-				: R(r), G(g), B(b), V(v) {}
 
 			operator uint32_t () { return R + (G << 8) + (B << 16) + (V << 24); }
 		};
@@ -85,7 +79,6 @@ namespace Minecraft {
 		std::unordered_map<ChunkBlock::Position, Ref<Block>> m_Blocks;
 
 	};
-
 
 }
 namespace std {
