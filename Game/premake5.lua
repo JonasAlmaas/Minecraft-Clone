@@ -20,8 +20,8 @@ project "Game"
     {
         "src",
 
-        "../Engine/Engine/src",
-        "../Engine/Engine/vendor/spdlog/include",
+        "../Engine/Moon-Engine/src",
+        "../Engine/Moon-Engine/vendor/spdlog/include",
 
 		"%{IncludeDir.entt}",
         "%{IncludeDir.glm}",
@@ -30,7 +30,7 @@ project "Game"
 
     links
     {
-        "Engine"
+        "Moon-Engine"
     }
 
 	filter "system:windows"

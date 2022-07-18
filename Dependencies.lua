@@ -3,19 +3,20 @@
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
-IncludeDir["Box2D"] = "%{wks.location}/Engine/Engine/vendor/Box2D/include"
-IncludeDir["entt"] = "%{wks.location}/Engine/Engine/vendor/entt/include"
-IncludeDir["Glad"] = "%{wks.location}/Engine/Engine/vendor/Glad/include"
-IncludeDir["GLFW"] = "%{wks.location}/Engine/Engine/vendor/GLFW/include"
-IncludeDir["glm"] = "%{wks.location}/Engine/Engine/vendor/glm"
-IncludeDir["ImGui"] = "%{wks.location}/Engine/Engine/vendor/ImGui"
-IncludeDir["ImGuizmo"] = "%{wks.location}/Engine/Engine/vendor/ImGuizmo"
-IncludeDir["shaderc"] = "%{wks.location}/Engine/Engine/vendor/shaderc/include"
-IncludeDir["spdlog"] = "%{wks.location}/Engine/Engine/vendor/spdlog/include"
-IncludeDir["SPIRV_Cross"] = "%{wks.location}/Engine/Engine/vendor/SPIRV-Cross"
-IncludeDir["stb_image"] = "%{wks.location}/Engine/Engine/vendor/stb_image"
+IncludeDir["Box2D"] = "%{wks.location}/Engine/Moon-Engine/vendor/Box2D/include"
+IncludeDir["entt"] = "%{wks.location}/Engine/Moon-Engine/vendor/entt/include"
+IncludeDir["Glad"] = "%{wks.location}/Engine/Moon-Engine/vendor/Glad/include"
+IncludeDir["GLFW"] = "%{wks.location}/Engine/Moon-Engine/vendor/GLFW/include"
+IncludeDir["glm"] = "%{wks.location}/Engine/Moon-Engine/vendor/glm"
+IncludeDir["ImGui"] = "%{wks.location}/Engine/Moon-Engine/vendor/ImGui"
+IncludeDir["ImGuizmo"] = "%{wks.location}/Engine/Moon-Engine/vendor/ImGuizmo"
+IncludeDir["shaderc"] = "%{wks.location}/Engine/Moon-Engine/vendor/shaderc/include"
+IncludeDir["spdlog"] = "%{wks.location}/Engine/Moon-Engine/vendor/spdlog/include"
+IncludeDir["spdlog"] = "%{wks.location}/Engine/Moon-Engine/vendor/spdlog/include"
+IncludeDir["SPIRV_Cross"] = "%{wks.location}/Engine/Moon-Engine/vendor/SPIRV-Cross"
+IncludeDir["stb_image"] = "%{wks.location}/Engine/Moon-Engine/vendor/stb_image"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["yaml"] = "%{wks.location}/Engine/Engine/vendor/yaml/include"
+IncludeDir["yaml"] = "%{wks.location}/Engine/Moon-Engine/vendor/yaml/include"
 
 LibraryDir = {}
 
