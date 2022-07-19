@@ -104,8 +104,7 @@ namespace Moon {
 
 	bool GameCamera::OnWindowResizeEvent(WindowResizeEvent& e)
 	{
-		m_ViewportWidth = (float)e.GetWidth();
-		m_ViewportHeight = (float)e.GetHeight();
+		SetViewportSize((float)e.GetWidth(), (float)e.GetHeight());
 		return false;
 	}
 
