@@ -4,9 +4,16 @@
 
 namespace Moon {
 
+	GameCamera::GameCamera()
+	{
+		m_Pitch = glm::radians(-90.0f);
+	}
+
 	GameCamera::GameCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: PerspectiveCamera(fov, aspectRatio, nearClip, farClip)
 	{
+		m_Pitch = glm::radians(-90.0f);
+
 		m_LastMouseX = Input::GetMouseX();
 		m_LastMouseY = Input::GetMouseY();
 	}

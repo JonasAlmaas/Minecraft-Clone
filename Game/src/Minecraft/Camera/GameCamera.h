@@ -8,7 +8,7 @@ namespace Moon {
 	class GameCamera : public PerspectiveCamera
 	{
 	public:
-		GameCamera() = default;
+		GameCamera();
 		GameCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
 		~GameCamera() = default;
