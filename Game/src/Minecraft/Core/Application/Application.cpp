@@ -1,7 +1,7 @@
 #include "mcpch.h"
-#include "Minecraft/Application/Application.h"
+#include "Minecraft/Core/Application/Application.h"
 
-#include "Minecraft/Layer/GameLayer.h"
+#include "Minecraft/Core/Layer/GameLayer.h"
 
 
 namespace Minecraft {

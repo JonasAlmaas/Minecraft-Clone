@@ -1,7 +1,7 @@
 #include "mcpch.h"
 #include <Moon/Core/Entrypoint.h>
 
-#include "Minecraft/Application/Application.h"
+#include "Minecraft/Core/Application/Application.h"
 
 
 namespace Moon {

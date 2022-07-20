@@ -25,7 +25,7 @@ namespace Minecraft {
 
 	private:
 		Ref<World> m_World = nullptr;
-		Ref<GameCamera> m_Camera;
+		Ref<GameCamera> m_Camera = nullptr;
 
 		float m_FrameTime = 0;
 		float m_LastTickTime = 0;
