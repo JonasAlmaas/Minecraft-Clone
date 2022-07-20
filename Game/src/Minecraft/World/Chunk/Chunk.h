@@ -81,6 +81,7 @@ namespace Minecraft {
 	};
 
 }
+
 namespace std {
 
 	template<>
