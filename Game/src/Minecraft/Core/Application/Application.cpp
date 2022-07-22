@@ -9,7 +9,7 @@ namespace Minecraft {
 	MinecraftApp::MinecraftApp(const ApplicationSpecification& spec)
 		: Application(spec)
 	{
-		PushLayer(CreateRef<GameLayer>());
+		PushLayer(new GameLayer());
 	}
 
 }
