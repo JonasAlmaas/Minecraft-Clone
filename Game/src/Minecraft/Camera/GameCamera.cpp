@@ -7,6 +7,7 @@ namespace Moon {
 	GameCamera::GameCamera()
 	{
 		m_Pitch = glm::radians(-90.0f);
+		m_FOV = 70.0f;
 	}
 
 	GameCamera::GameCamera(float fov, float aspectRatio, float nearClip, float farClip)
