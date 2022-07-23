@@ -107,6 +107,7 @@ namespace Minecraft {
 				vertexCount += 4;
 				indexCount += 6;
 			}
+
 			// -- North --
 			if (m_Blocks.find(ChunkBlock::Position(pos.x, pos.y + 1, pos.z)) == m_Blocks.end())
 			{
@@ -136,7 +137,6 @@ namespace Minecraft {
 				vertexCount += 4;
 				indexCount += 6;
 			}
-
 
 			// -- South --
 			if (pos.y == 0 || m_Blocks.find(ChunkBlock::Position(pos.x, pos.y - 1, pos.z)) == m_Blocks.end())

@@ -25,8 +25,6 @@ namespace Minecraft {
 		void OnCrossChunkBorder();
 		void OnCrossBlockBorder();
 
-		void GenerateWorld();
-
 		/**
 		* @return true if done generating all chunks.
 		* This is because I only want to generate at most one chunk per tick.

@@ -11,7 +11,8 @@ namespace Minecraft {
 		m_RenderChunkBase = new Chunk::Position[(m_DrawDistance + m_DrawDistance + 1) * (m_DrawDistance + m_DrawDistance + 1)];
 		m_RenderChunkPtr = m_RenderChunkBase;
 
-		GenerateWorld();
+		RecalculateRenderChunks();
+		GenerateNewChunksFromRenderChunks(true);
 	}
 
 	World::~World()
@@ -108,12 +109,6 @@ namespace Minecraft {
 				}
 			}
 		}
-	}
-
-	void World::GenerateWorld()
-	{
-		RecalculateRenderChunks();
-		GenerateNewChunksFromRenderChunks(true);
 	}
 
 }
