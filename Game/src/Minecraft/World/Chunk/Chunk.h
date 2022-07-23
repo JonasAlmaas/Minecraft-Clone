@@ -67,11 +67,16 @@ namespace Minecraft {
 	public:
 		Chunk(const Position& chunkPosition);
 
-		void GenerateBlocks();
-		void GenerateVertexArray();
-
 		const Position GetPosition() const { return m_ChunkPosition; }
 		const Ref<VertexArray> GetVertexArray() const { return m_VertexArray; };
+
+		bool HasBlock(ChunkBlock::Position& pos) const { return m_Blocks.find(pos) != m_Blocks.end(); }
+		Ref<Block> GetBlock(ChunkBlock::Position& pos) const { return m_Blocks.at(pos); }
+
+		void BreakBlock(ChunkBlock::Position& pos);
+
+	private:
+		void GenerateVertexArray();
 
 	private:
 		Position m_ChunkPosition;

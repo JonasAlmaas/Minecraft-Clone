@@ -14,12 +14,6 @@ namespace Minecraft {
 	Chunk::Chunk(const Position& chunkPosition)
 		: m_ChunkPosition(chunkPosition)
 	{
-		GenerateBlocks();
-		GenerateVertexArray();
-	}
-
-	void Chunk::GenerateBlocks()
-	{
 		// Generate Chunk Blocks
 		for (uint8_t x = 0; x < 16; x++)
 		{
@@ -34,6 +28,14 @@ namespace Minecraft {
 				m_Blocks[{ x, y, 0 }] = Block::Create(Block::Type::Bedrock);
 			}
 		}
+
+		GenerateVertexArray();
+	}
+
+	void Chunk::BreakBlock(ChunkBlock::Position& pos)
+	{
+		m_Blocks.erase(pos);
+		GenerateVertexArray();
 	}
 
 	void Chunk::GenerateVertexArray()

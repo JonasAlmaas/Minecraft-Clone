@@ -36,9 +36,9 @@ namespace Minecraft {
 		if (currentPlayerChunkPosition != m_PlayerChunkPosition)
 		{
 			m_PlayerChunkPosition = currentPlayerChunkPosition;
-			m_GeneratingNewChunks = true;
+			//m_GeneratingNewChunks = true;
 
-			OnCrossChunkBorder();
+			//OnCrossChunkBorder();
 		}
 
 		// Move between blocks
@@ -113,7 +113,16 @@ namespace Minecraft {
 
 	void World::GenerateWorld()
 	{
-		RecalculateRenderChunks();
+		//RecalculateRenderChunks();
+
+		for (int x = 0; x <= 16; x++)
+		{
+			Chunk::Position chunkPosition = { x, 0 };
+			m_RenderChunkPtr->x = x;
+			m_RenderChunkPtr->y = 0;
+			m_RenderChunkPtr++;
+		}
+
 		GenerateNewChunksFromRenderChunks(true);
 	}
 

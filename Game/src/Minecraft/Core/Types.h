@@ -8,7 +8,7 @@ namespace Minecraft {
 		int x, y;
 
 		Int2() : x(0), y(0) {}
-		Int2(int _x, int _y) : x(_x), y(_y) {}
+		Int2(int x, int y) : x(x), y(y) {}
 
 		bool operator == (const Int2& other) const { return x == other.x && y == other.y; }
 		bool operator != (const Int2& other) const { return !(*this == other); }
@@ -25,7 +25,7 @@ namespace Minecraft {
 		int x, y, z;
 
 		Int3() : x(0), y(0), z(0) {}
-		Int3(int _x, int _y, int _z) : x(_x), y(_y), z(_z) {}
+		Int3(int x, int y, int z) : x(x), y(y), z(z) {}
 
 		bool operator == (const Int3& other) const { return x == other.x && y == other.y && z == other.z; }
 		bool operator != (const Int3& other) const { return !(*this == other); }

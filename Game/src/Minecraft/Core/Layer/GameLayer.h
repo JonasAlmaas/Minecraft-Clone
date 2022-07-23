@@ -22,13 +22,13 @@ namespace Minecraft {
 
 	private:
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
+		bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& e);
 
 	private:
 		Ref<World> m_World = nullptr;
 		Ref<GameCamera> m_Camera = nullptr;
 
 		float m_FrameTime = 0;
-		float m_LastTickTime = 0;
 
 	};
 
