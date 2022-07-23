@@ -38,8 +38,13 @@ namespace Minecraft {
 		m_FrameTime = ts;
 
 		// ---- Tick ----
-		if (ts >= 1.0f / 20.0f)
-			m_World->Tick(ts);
+		float timeNow = Time::Get();
+		Timestep tickTimestep = timeNow - m_LastTickTime;
+		if (tickTimestep >= 1.0f / 20.0f)
+		{
+			m_World->Tick(tickTimestep);
+			m_LastTickTime = timeNow;
+		}
 
 		// ---- Update ----
 		m_Camera->OnUpdate(ts);
@@ -72,13 +77,19 @@ namespace Minecraft {
 	{
 		if (e.IsRepeat())
 			return false;
+
 		switch (e.GetKeyCode())
 		{
 		case Key::F5:
 		{
 			GameRenderer::ReloadShaders();
 		}
+			case Key::F5:
+			{
+				GameRenderer::ReloadShaders();
+			}
 		}
+
 		return false;
 	}
 
@@ -86,10 +97,7 @@ namespace Minecraft {
 	{
 		if (e.GetMouseButton() == Mouse::Button0)
 		{
-			//m_Camera->GetForwardVector()
-			glm::vec3 rayDirection = glm::rotate(glm::quat(glm::vec3(-glm::radians(-90.0f), -0.0f, -m_Camera->GetYawRadians())), glm::vec3(0.0f, 0.0f, -1.0f));
-
-			Ray ray(m_Camera->GetPosition(), rayDirection, 10.0f);
+			Ray ray(m_Camera->GetPosition(), m_Camera->GetForwardVector(), 5.0f);
 
 			RayWorldHitResult hitResult;
 			if (ray.WorldIntersection(m_World, hitResult))
@@ -104,6 +112,12 @@ namespace Minecraft {
 					(int)glm::floor(hitResult.HitBlock.y) % 16,
 					(int)glm::floor(hitResult.HitBlock.z)
 				};
+
+				if (hitBlockPosition.x < 0)
+					hitBlockPosition.x = 16 + hitBlockPosition.x;
+
+				if (hitBlockPosition.y < 0)
+					hitBlockPosition.y = 16 + hitBlockPosition.y;
 
 				m_World->GetChunk(hitChunkPosition)->BreakBlock(hitBlockPosition);
 			}

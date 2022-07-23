@@ -60,6 +60,8 @@ namespace Minecraft {
 
 	void GameRenderer::RenderWorld(const Ref<World>& world, const glm::mat4& viewProjectionMatrix)
 	{
+		RenderCommand::SetDepthTest(true);
+
 		s_Data->CameraBuffer.ViewProjection = viewProjectionMatrix;
 		s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer, sizeof(RendererData::CameraData));
 
