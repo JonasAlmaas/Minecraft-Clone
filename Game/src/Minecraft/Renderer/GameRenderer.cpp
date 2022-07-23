@@ -41,8 +41,8 @@ namespace Minecraft {
 		spec.WrapT = Texture2DWrap::ClampToEdge;
 		s_Data->BlockTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrain-atlas.png", spec);
 
-		s_Data->CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
-		s_Data->ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 1);
+		s_Data->CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
+		s_Data->ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 2);
 
 		RenderCommand::SetMultisample(false);
 	}
@@ -79,6 +79,19 @@ namespace Minecraft {
 				RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArray());
 			}
 		}
+	}
+
+	void GameRenderer::RenderHUD(const Ref<RenderCamera>& renderCamera)
+	{
+		RenderCommand::SetDepthTest(false);
+
+		Renderer2D::BeginScene(renderCamera);
+
+		// Crosshair
+		Renderer2D::DrawSprite({ 0, 0 }, { 0.02f, 0.18f }, Color(0.8f, 0.95f));
+		Renderer2D::DrawSprite({ 0, 0 }, { 0.18f, 0.02f }, Color(0.8f, 0.95f));
+
+		Renderer2D::EndScene();
 	}
 
 }

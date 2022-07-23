@@ -31,12 +31,12 @@ layout(location = 0) in uint a_Position;
 layout(location = 1) in uint a_TextureIndex;
 layout(location = 2) in uint a_RGBV;
 
-layout(std140, binding = 0) uniform Camera
+layout(std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
 };
 
-layout(std140, binding = 1) uniform ChunkPosition
+layout(std140, binding = 2) uniform ChunkPosition
 {
 	int u_ChunkX;
 	int u_ChunkY;

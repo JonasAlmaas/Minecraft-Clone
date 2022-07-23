@@ -16,6 +16,7 @@ namespace Minecraft {
 		static void ReloadShaders();
 
 		static void RenderWorld(const Ref<World>& world, const glm::mat4& viewProjectionMatrix);
+		static void RenderHUD(const Ref<RenderCamera>& renderCamera);
 
 	};
 

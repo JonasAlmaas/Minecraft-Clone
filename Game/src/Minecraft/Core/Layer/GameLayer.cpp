@@ -19,10 +19,12 @@ namespace Minecraft {
 		Application::Get().GetWindow().DisableCursor();
 
 		m_Camera = CreateRef<GameCamera>();
+		m_CameraHUD = CreateRef<OrthographicCamera>(10.0f, 1.778f);
 
 		float windowWidth = (float)Application::Get().GetWindow().GetWidth();
 		float windowHeight = (float)Application::Get().GetWindow().GetHeight();
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
+		m_CameraHUD->SetViewportSize(windowWidth, windowHeight);
 
 		uint64_t seed = Random::UInt();
 		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
@@ -52,7 +54,9 @@ namespace Minecraft {
 		// ---- Render ----
 		RenderCommand::SetClearColor({ 0.431f, 0.8f, 1.0f, 1.0f });
 		RenderCommand::Clear();
+
 		GameRenderer::RenderWorld(m_World, m_Camera->GetViewProjection());
+		GameRenderer::RenderHUD(m_CameraHUD);
 	}
 
 	void GameLayer::OnImGuiRender()
@@ -69,6 +73,7 @@ namespace Minecraft {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(ME_BIND_EVENT_FN(GameLayer::OnKeyPressedEvent));
 		dispatcher.Dispatch<MouseButtonPressedEvent>(ME_BIND_EVENT_FN(GameLayer::OnMouseButtonPressedEvent));
+		dispatcher.Dispatch<WindowResizeEvent>(ME_BIND_EVENT_FN(GameLayer::OnWindowResizeEvent));
 
 		m_Camera->OnEvent(e);
 	}
@@ -80,10 +85,6 @@ namespace Minecraft {
 
 		switch (e.GetKeyCode())
 		{
-		case Key::F5:
-		{
-			GameRenderer::ReloadShaders();
-		}
 			case Key::F5:
 			{
 				GameRenderer::ReloadShaders();
@@ -125,4 +126,11 @@ namespace Minecraft {
 
 		return false;
 	}
+
+	bool GameLayer::OnWindowResizeEvent(WindowResizeEvent& e)
+	{
+		m_CameraHUD->SetViewportSize((float)e.GetWidth(), (float)e.GetHeight());
+		return false;
+	}
+
 }
