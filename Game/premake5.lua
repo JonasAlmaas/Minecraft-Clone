@@ -8,7 +8,7 @@ project "Game"
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "mcpch.h"
-    pchsource "src/mcpch.cpp"
+    pchsource "src/private/mcpch.cpp"
 
     files
     {
@@ -18,9 +18,9 @@ project "Game"
 
     includedirs
     {
-        "src",
+        "src/public",
 
-        "../Engine/Moon-Engine/src",
+        "../Engine/Moon-Engine/src/public",
         "../Engine/Moon-Engine/vendor/spdlog/include",
 
 		"%{IncludeDir.entt}",
