@@ -26,7 +26,7 @@ namespace Minecraft {
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 		m_CameraHUD->SetViewportSize(windowWidth, windowHeight);
 
-		uint64_t seed = Random::UInt();
+		uint64_t seed = Random::UInt32();
 		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
 	}
 
