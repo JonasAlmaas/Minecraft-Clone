@@ -34,12 +34,10 @@ namespace Minecraft {
 
 		s_Data->BlockShader = Shader::Create("Content/Shaders/Minecraft/Chunk.glsl");
 
-		Texture2DSpecification spec;
-		spec.MinFilter = Texture2DFilter::Nearest;
-		spec.MagFilter = Texture2DFilter::Nearest;
-		spec.WrapS = Texture2DWrap::ClampToEdge;
-		spec.WrapT = Texture2DWrap::ClampToEdge;
-		s_Data->BlockTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrain-atlas.png", spec);
+		TextureProperties props;
+		props.SamplerFilter = TextureFilter::Nearest;
+		props.SamplerWrap = TextureWrap::ClampToEdge;
+		s_Data->BlockTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrain-atlas.png", props);
 
 		s_Data->CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
 		s_Data->ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 2);

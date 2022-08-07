@@ -29,6 +29,7 @@ group "Dependencies"
 	include "Engine/Moon-Engine/vendor/Glad"
 	include "Engine/Moon-Engine/vendor/GLFW"
 	include "Engine/Moon-Engine/vendor/ImGui"
+	include "Engine/Moon-Engine/vendor/msdf-atlas-gen"
 	include "Engine/Moon-Engine/vendor/yaml"
 group ""
 
