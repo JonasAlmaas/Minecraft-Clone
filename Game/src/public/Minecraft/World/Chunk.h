@@ -65,10 +65,15 @@ namespace Minecraft {
 		};
 
 	public:
-		Chunk(const Position& chunkPosition);
+		Chunk(uint64_t seed, const Position& chunkPosition);
 
 		const Position GetPosition() const { return m_ChunkPosition; }
-		const Ref<VertexArray> GetVertexArray() const { return m_VertexArray; };
+
+		bool HasSolidBlocks() const { return m_HasSolidBlocks; }
+		bool HasTransparentBlocks() const { return m_HasTransparentBlocks; }
+
+		const Ref<VertexArray> GetVertexArraySolid() const { return m_VertexArraySolid; };
+		const Ref<VertexArray> GetVertexArrayTransparent() const { return m_VertexArrayTransparent; };
 
 		bool HasBlock(ChunkBlock::Position& pos) const { return m_Blocks.find(pos) != m_Blocks.end(); }
 		Ref<Block> GetBlock(ChunkBlock::Position& pos) const { return m_Blocks.at(pos); }
@@ -79,8 +84,15 @@ namespace Minecraft {
 		void GenerateVertexArray();
 
 	private:
+		uint64_t m_Seed;
 		Position m_ChunkPosition;
-		Ref<VertexArray> m_VertexArray;
+
+		bool m_HasSolidBlocks;
+		bool m_HasTransparentBlocks;
+
+		Ref<VertexArray> m_VertexArraySolid;
+		Ref<VertexArray> m_VertexArrayTransparent;
+
 		std::unordered_map<ChunkBlock::Position, Ref<Block>> m_Blocks;
 
 	};

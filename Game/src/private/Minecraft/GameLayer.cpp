@@ -19,14 +19,14 @@ namespace Minecraft {
 		Application::Get().GetWindow().DisableCursor();
 
 		m_Camera = CreateRef<GameCamera>();
-		m_CameraHUD = CreateRef<OrthographicCamera>(10.0f, 1.778f);
+		m_CameraHUD = CreateRef<OrthographicCamera>(10.0f);
 
 		float windowWidth = (float)Application::Get().GetWindow().GetWidth();
 		float windowHeight = (float)Application::Get().GetWindow().GetHeight();
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 		m_CameraHUD->SetViewportSize(windowWidth, windowHeight);
 
-		uint64_t seed = Random::UInt32();
+		uint64_t seed = Random::UInt64();
 		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
 	}
 

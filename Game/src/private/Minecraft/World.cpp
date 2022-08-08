@@ -69,7 +69,7 @@ namespace Minecraft {
 		{
 			if (m_Chunks.find(chunkPosition) == m_Chunks.end())
 			{
-				m_Chunks[chunkPosition] = CreateRef<Chunk>(chunkPosition);
+				m_Chunks[chunkPosition] = CreateRef<Chunk>(m_Seed, chunkPosition);
 
 				if (!allAtOnce)
 					return false;

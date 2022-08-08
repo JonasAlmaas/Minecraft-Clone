@@ -24,6 +24,7 @@ namespace Minecraft {
 			Sand,
 			Stone,
 			Tourch,
+			Water,
 		};
 
 		enum class TextureIndex
@@ -54,6 +55,7 @@ namespace Minecraft {
 			RedstoneOre,
 			Glass,
 			GlassSide,
+			Water,
 		};
 
 		enum class Face
@@ -70,7 +72,6 @@ namespace Minecraft {
 		{
 			Solid = 0,
 			Transparant,
-			Water,
 		};
 
 	public:
@@ -80,6 +81,58 @@ namespace Minecraft {
 
 		virtual uint16_t GetTextureIndex(Face face) const = 0;
 		virtual Renderpass GetRenderpass() const = 0;
+
+	};
+
+	// -- Blocks --
+
+	class BedrockBlock : public Block
+	{
+	public:
+		BedrockBlock() = default;
+
+		virtual uint16_t GetTextureIndex(Face face) const override;
+		virtual Renderpass GetRenderpass() const override { return Renderpass::Solid; }
+
+	};
+
+	class DirtBlock : public Block
+	{
+	public:
+		DirtBlock() = default;
+
+		virtual uint16_t GetTextureIndex(Face face) const override;
+		virtual Renderpass GetRenderpass() const override { return Renderpass::Solid; }
+
+	};
+
+	class GrassBlock : public Block
+	{
+	public:
+		GrassBlock() = default;
+
+		virtual uint16_t GetTextureIndex(Face face) const override;
+		virtual Renderpass GetRenderpass() const override { return Renderpass::Solid; }
+
+	};
+
+	class StoneBlock : public Block
+	{
+	public:
+		StoneBlock() = default;
+
+		virtual uint16_t GetTextureIndex(Face face) const override;
+		virtual Renderpass GetRenderpass() const override { return Renderpass::Solid; }
+
+	};
+
+	class WaterBlock : public Block
+	{
+	public:
+		WaterBlock() = default;
+
+		virtual uint16_t GetTextureIndex(Face face) const override;
+		virtual Renderpass GetRenderpass() const override { return Renderpass::Transparant; }
 
 	};
 

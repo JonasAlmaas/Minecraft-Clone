@@ -8,7 +8,11 @@ namespace Minecraft {
 
 	struct RendererData
 	{
+		Ref<Font> HUDFont;
+
 		Ref<Shader> BlockShader;
+		Ref<Shader> WaterShader;
+
 		Ref<Texture2D> BlockTextureAtlas;
 
 		struct CameraData
@@ -32,7 +36,10 @@ namespace Minecraft {
 	{
 		s_Data = new RendererData();
 
+		s_Data->HUDFont = Font::Create("Content/Fonts/RobotoMono-Regular.ttf");
+
 		s_Data->BlockShader = Shader::Create("Content/Shaders/Minecraft/Chunk.glsl");
+		s_Data->WaterShader = Shader::Create("Content/Shaders/Minecraft/Water.glsl");
 
 		TextureProperties props;
 		props.SamplerFilter = TextureFilter::Nearest;
@@ -66,15 +73,39 @@ namespace Minecraft {
 		s_Data->BlockTextureAtlas->Bind();
 		s_Data->BlockShader->Bind();
 
+		// -- Render solid --
 		for (auto& chunkPosition : *world)
 		{
 			if (world->HasChunk(chunkPosition))
 			{
-				s_Data->ChunkPositionBuffer.X = chunkPosition.x;
-				s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
-				s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
+				Ref<Chunk> chunk = world->GetChunk(chunkPosition);
+				if (chunk->HasSolidBlocks())
+				{
+					s_Data->ChunkPositionBuffer.X = chunkPosition.x;
+					s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
+					s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
 
-				RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArray());
+					RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArraySolid());
+				}
+			}
+		}
+
+		s_Data->WaterShader->Bind();
+
+		// -- Render transparent --
+		for (auto& chunkPosition : *world)
+		{
+			if (world->HasChunk(chunkPosition))
+			{
+				Ref<Chunk> chunk = world->GetChunk(chunkPosition);
+				if (chunk->HasTransparentBlocks())
+				{
+					s_Data->ChunkPositionBuffer.X = chunkPosition.x;
+					s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
+					s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
+
+					RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArrayTransparent());
+				}
 			}
 		}
 	}
@@ -84,6 +115,8 @@ namespace Minecraft {
 		RenderCommand::SetDepthTest(false);
 
 		Renderer2D::BeginScene(renderCamera);
+
+		//Renderer2D::DrawText("Hello World\nThis is now on a new line! Ain't that pog\nDesigned by Almaas!", s_Data->HUDFont, { 0.0f, 0.0f });
 
 		// Crosshair
 		Renderer2D::DrawSprite({ 0, 0 }, { 0.02f, 0.18f }, Color(0.8f, 0.95f));
