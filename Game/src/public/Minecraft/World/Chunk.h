@@ -3,97 +3,66 @@
 using namespace Moon;
 
 #include "Minecraft/World/Block.h"
-#include "Minecraft/World/ChunkBlock.h"
 
 
 namespace Minecraft {
 
+	class World;
+
+	struct ChunkPosition : public Int2
+	{
+		ChunkPosition() : Int2() {}
+		ChunkPosition(int x, int y) : Int2(x, y) {}
+
+		using Iterator = VectorIterator<ChunkPosition>;
+
+		bool IsWithinRadius(ChunkPosition& center, float radius)
+		{
+			// https://www.redblobgames.com/grids/circle-drawing/#distance-test
+			float dx = (float)(center.x - x);
+			float dy = (float)(center.y - y);
+			float distance_squared = dx * dx + dy * dy;
+			return distance_squared <= radius * radius;
+		}
+	};
+
 	class Chunk
 	{
 	public:
-		struct Position : public Int2
-		{
-		public:
-			Position() : Int2() {}
-			Position(int x, int y) : Int2(x, y) {}
+		Chunk(const ChunkPosition& position, World* world);
 
-			bool IsWithinRadius(Position& center, float radius)
-			{
-				// https://www.redblobgames.com/grids/circle-drawing/#distance-test
-				float dx = (float)(center.x - x);
-				float dy = (float)(center.y - y);
-				float distance_squared = dx * dx + dy * dy;
-				return distance_squared <= radius * radius;
-			}
-		};
+		const ChunkPosition GetPosition() const { return m_Position; }
 
-		struct PositionIterator
-		{
-		public:
-			PositionIterator(Position* ptr) : m_Ptr(ptr) {}
+		bool HasBlock(const LocalBlockPosition& position);
+		bool HasBlock(const WorldBlockPosition& position);
 
-			Position& operator*() const { return *m_Ptr; }
-			Position* operator->() { return m_Ptr; }
+		Ref<Block> GetBlock(const LocalBlockPosition& position) const;
+		Ref<Block> GetBlock(const WorldBlockPosition& position) const;
 
-			// Prefix increment
-			PositionIterator& operator++() { m_Ptr++; return *this; }
+		bool HasSolidTerrain() const { return m_HasSolidTerrain; }
+		bool HasTransparentTerrain() const { return m_HasTransparentTerrain; }
+		bool HasWater() const { return m_HasWater; }
 
-			// Postfix increment
-			PositionIterator operator++(int) { PositionIterator tmp = *this; ++(*this); return tmp; }
+		void GenerateMeshes();
 
-			friend bool operator== (const PositionIterator& a, const PositionIterator& b) { return a.m_Ptr == b.m_Ptr; };
-			friend bool operator!= (const PositionIterator& a, const PositionIterator& b) { return a.m_Ptr != b.m_Ptr; };
+		const Ref<VertexArray> GetSolidTerrainMesh() const { return m_SolidTerrainMesh; }
+		const Ref<VertexArray> GetTransparentTerrainMesh() const { return m_TransparentTerrainMesh; }
 
-		private:
-			Position* m_Ptr;
-		};
-
-		struct VertexPosition
-		{
-			uint8_t BlockX, BlockY, BlockZ;
-			bool OffsetX, OffsetY, OffsetZ;
-			bool U, V;
-
-			operator uint32_t () { return BlockX + (BlockY << 4) + (BlockZ << 8) + (OffsetX << 16) + (OffsetY << 17) + (OffsetZ << 18) + (U << 19) + (V << 20); }
-		};
-
-		struct VertexColor
-		{
-			uint8_t R, G, B, V;
-
-			operator uint32_t () { return R + (G << 8) + (B << 16) + (V << 24); }
-		};
-
-	public:
-		Chunk(uint64_t seed, const Position& chunkPosition);
-
-		const Position GetPosition() const { return m_ChunkPosition; }
-
-		bool HasSolidBlocks() const { return m_HasSolidBlocks; }
-		bool HasTransparentBlocks() const { return m_HasTransparentBlocks; }
-
-		const Ref<VertexArray> GetVertexArraySolid() const { return m_VertexArraySolid; };
-		const Ref<VertexArray> GetVertexArrayTransparent() const { return m_VertexArrayTransparent; };
-
-		bool HasBlock(ChunkBlock::Position& pos) const { return m_Blocks.find(pos) != m_Blocks.end(); }
-		Ref<Block> GetBlock(ChunkBlock::Position& pos) const { return m_Blocks.at(pos); }
-
-		void BreakBlock(ChunkBlock::Position& pos);
+		void BreakBlock(const LocalBlockPosition& position);
+		void BreakBlock(const WorldBlockPosition& position);
 
 	private:
-		void GenerateVertexArray();
+		ChunkPosition m_Position;
+		World* m_World;
 
-	private:
-		uint64_t m_Seed;
-		Position m_ChunkPosition;
+		bool m_HasSolidTerrain = false;
+		bool m_HasTransparentTerrain = false;
+		bool m_HasWater;
 
-		bool m_HasSolidBlocks;
-		bool m_HasTransparentBlocks;
+		Ref<VertexArray> m_SolidTerrainMesh;
+		Ref<VertexArray> m_TransparentTerrainMesh;
 
-		Ref<VertexArray> m_VertexArraySolid;
-		Ref<VertexArray> m_VertexArrayTransparent;
-
-		std::unordered_map<ChunkBlock::Position, Ref<Block>> m_Blocks;
+		std::unordered_map<LocalBlockPosition, Ref<Block>> m_Blocks;
 
 	};
 
@@ -102,9 +71,9 @@ namespace Minecraft {
 namespace std {
 
 	template<>
-	struct hash<Minecraft::Chunk::Position>
+	struct hash<Minecraft::ChunkPosition>
 	{
-		size_t operator()(const Minecraft::Chunk::Position& key) const
+		size_t operator()(const Minecraft::ChunkPosition& key) const
 		{
 			return hash<size_t>()(key.x | ((unsigned long long)key.y) << 32);
 		}

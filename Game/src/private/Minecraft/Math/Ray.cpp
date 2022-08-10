@@ -6,10 +6,10 @@ namespace Minecraft {
 
 	bool Ray::WorldIntersection(const Ref<World>& world, RayWorldHitResult& outResult)
 	{
-		Int3 currentBlockPosition = {
+		WorldBlockPosition currentBlockPosition = {
 			(int)glm::floor(Origin.x),
 			(int)glm::floor(Origin.y),
-			(int)glm::floor(Origin.z)
+			(uint8_t)glm::floor(Origin.z)
 		};
 
 		glm::vec3 absDirection = glm::abs(Direction);
@@ -82,32 +82,12 @@ namespace Minecraft {
 		while (distanceTraveled < Distance)
 		{
 			// Check if there is a block at the current position
-			Chunk::Position chunkPosition = {
-				(int)glm::floor((float)currentBlockPosition.x / 16.0f),
-				(int)glm::floor((float)currentBlockPosition.y / 16.0f)
-			};
-
-			if (world->HasChunk(chunkPosition))
+			if (world->HasBlock(currentBlockPosition))
 			{
-				ChunkBlock::Position localBlockPosition = {
-					currentBlockPosition.x % 16,
-					currentBlockPosition.y % 16,
-					currentBlockPosition.z
-				};
-
-				if (localBlockPosition.x < 0)
-					localBlockPosition.x = 16 + localBlockPosition.x;
-
-				if (localBlockPosition.y < 0)
-					localBlockPosition.y = 16 + localBlockPosition.y;
-
-				if (world->GetChunk(chunkPosition)->HasBlock(localBlockPosition))
-				{
-					outResult.Hit = true;
-					outResult.HitBlock = currentBlockPosition;
-					outResult.HitFraction = distanceTraveled / Distance;
-					return true;
-				}
+				outResult.Hit = true;
+				outResult.HitBlock = currentBlockPosition;
+				outResult.HitFraction = distanceTraveled / Distance;
+				return true;
 			}
 
 			glm::vec3 absRayLength1D = glm::abs(rayLength1D);

@@ -8,19 +8,26 @@ namespace Minecraft {
 	class World
 	{
 	public:
-		World(uint64_t seed, const glm::vec3* playerPosition);
+		World(const glm::vec3* playerPosition);
 		~World();
 
+		// Called every frame
+		void OnUpdate(Timestep ts);
+
+		// Called 20 times a secon
 		void Tick(Timestep ts);
 
-		bool HasChunk(Chunk::Position& pos) const { return m_Chunks.find(pos) != m_Chunks.end(); }
-		Ref<Chunk> GetChunk(Chunk::Position& pos) const { return m_Chunks.at(pos); }
+		bool HasBlock(const WorldBlockPosition& position);
+		bool HasChunk(const ChunkPosition& position);
 
-		inline uint64_t GetSeed() const { return m_Seed; }
+		Ref<Chunk> GetChunk(const ChunkPosition& position) const;
+		Ref<Block> GetBlock(const WorldBlockPosition& position) const;
 
-		Chunk::PositionIterator begin() { return Chunk::PositionIterator(m_RenderChunkBase); };
-		Chunk::PositionIterator end() { return Chunk::PositionIterator(m_RenderChunkPtr); };
+		void BreakBlock(const WorldBlockPosition& position);
 
+		ChunkPosition::Iterator begin() { return ChunkPosition::Iterator(m_RenderChunkBase); };
+		ChunkPosition::Iterator end() { return ChunkPosition::Iterator(m_RenderChunkPtr); };
+		
 	private:
 		void OnCrossChunkBorder();
 		void OnCrossBlockBorder();
@@ -29,25 +36,26 @@ namespace Minecraft {
 		* @return true if done generating all chunks.
 		* This is because I only want to generate at most one chunk per tick.
 		*/
-		bool GenerateNewChunksFromRenderChunks(bool allAtOnce = false);
+		bool GenerateNewChunksFromRenderChunks();
 
 		void RecalculateRenderChunks();
 
 	private:
-		uint64_t m_Seed;
-		const glm::vec3* m_PlayerPosition = nullptr;
+		const glm::vec3* m_PlayerPosition;
 
-		Chunk::Position* m_RenderChunkBase;
-		Chunk::Position* m_RenderChunkPtr;
-		std::unordered_map<Chunk::Position, Ref<Chunk>> m_Chunks;
+		ChunkPosition* m_RenderChunkBase;
+		ChunkPosition* m_RenderChunkPtr;
+
+		std::unordered_map<ChunkPosition, Ref<Chunk>> m_Chunks;
 
 		// Draw distance in chunks
-		uint16_t m_DrawDistance = 10;
+		uint16_t m_DrawDistance = 12;
 
-		Chunk::Position m_PlayerChunkPosition;
-		ChunkBlock::Position m_PlayerBlockPosition;
+		ChunkPosition m_PlayerChunkPosition;
+		WorldBlockPosition m_PlayerBlockPosition;
 
 		bool m_GeneratingNewChunks = false;
+
 	};
 
 }

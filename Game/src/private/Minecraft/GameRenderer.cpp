@@ -8,12 +8,12 @@ namespace Minecraft {
 
 	struct RendererData
 	{
-		Ref<Font> HUDFont;
+		//Ref<Font> HUDFont;
 
-		Ref<Shader> BlockShader;
-		Ref<Shader> WaterShader;
+		Ref<Shader> TerrainShader;
+		//Ref<Shader> WaterShader;
 
-		Ref<Texture2D> BlockTextureAtlas;
+		Ref<Texture2D> TerrainTextureAtlas;
 
 		struct CameraData
 		{
@@ -36,15 +36,15 @@ namespace Minecraft {
 	{
 		s_Data = new RendererData();
 
-		s_Data->HUDFont = Font::Create("Content/Fonts/RobotoMono-Regular.ttf");
+		//s_Data->HUDFont = Font::Create("Content/Fonts/RobotoMono-Regular.ttf");
 
-		s_Data->BlockShader = Shader::Create("Content/Shaders/Minecraft/Chunk.glsl");
-		s_Data->WaterShader = Shader::Create("Content/Shaders/Minecraft/Water.glsl");
+		s_Data->TerrainShader = Shader::Create("Content/Shaders/Minecraft/Terrain.glsl");
+		//s_Data->WaterShader = Shader::Create("Content/Shaders/Minecraft/Water.glsl");
 
 		TextureProperties props;
 		props.SamplerFilter = TextureFilter::Nearest;
 		props.SamplerWrap = TextureWrap::ClampToEdge;
-		s_Data->BlockTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrain-atlas.png", props);
+		s_Data->TerrainTextureAtlas = Texture2D::Create("Content/Textures/Atlases/terrainAtlas.png", props);
 
 		s_Data->CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
 		s_Data->ChunkPositionUniformBuffer = UniformBuffer::Create(sizeof(RendererData::ChunkPositionData), 2);
@@ -60,7 +60,7 @@ namespace Minecraft {
 
 	void GameRenderer::ReloadShaders()
 	{
-		s_Data->BlockShader->Reload();
+		s_Data->TerrainShader->Reload();
 	}
 
 	void GameRenderer::RenderWorld(const Ref<World>& world, const glm::mat4& viewProjectionMatrix)
@@ -70,44 +70,54 @@ namespace Minecraft {
 		s_Data->CameraBuffer.ViewProjection = viewProjectionMatrix;
 		s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer, sizeof(RendererData::CameraData));
 
-		s_Data->BlockTextureAtlas->Bind();
-		s_Data->BlockShader->Bind();
+		// -- Render Terrain --
+		s_Data->TerrainTextureAtlas->Bind();
+		s_Data->TerrainShader->Bind();
 
-		// -- Render solid --
-		for (auto& chunkPosition : *world)
+		for (auto it = --world->end(); it >= world->begin(); it--)
 		{
-			if (world->HasChunk(chunkPosition))
+			if (world->HasChunk(*it))
 			{
-				Ref<Chunk> chunk = world->GetChunk(chunkPosition);
-				if (chunk->HasSolidBlocks())
-				{
-					s_Data->ChunkPositionBuffer.X = chunkPosition.x;
-					s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
-					s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
+				Ref<Chunk> chunk = world->GetChunk(*it);
 
-					RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArraySolid());
+				bool hasSolidTerrain = chunk->HasSolidTerrain();
+				bool hasTransparentTerrain = chunk->HasTransparentTerrain();
+
+				if (hasSolidTerrain || hasTransparentTerrain)
+				{
+					s_Data->ChunkPositionBuffer.X = it->x;
+					s_Data->ChunkPositionBuffer.Y = it->y;
+					s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
 				}
+
+				if (hasSolidTerrain)
+					RenderCommand::DrawIndexed(chunk->GetSolidTerrainMesh());
+
+				if (hasTransparentTerrain)
+					RenderCommand::DrawIndexed(chunk->GetTransparentTerrainMesh());
 			}
 		}
 
-		s_Data->WaterShader->Bind();
-
-		// -- Render transparent --
-		for (auto& chunkPosition : *world)
+		// -- Render Water --
+		//s_Data->WaterShader->Bind();
+		/*
+		for (auto it = --world->end(); it >= world->begin(); it--)
 		{
-			if (world->HasChunk(chunkPosition))
+			if (world->HasChunk(*it))
 			{
-				Ref<Chunk> chunk = world->GetChunk(chunkPosition);
-				if (chunk->HasTransparentBlocks())
+				Ref<Chunk> chunk = world->GetChunk(*it);
+
+				if (chunk->HasWater())
 				{
-					s_Data->ChunkPositionBuffer.X = chunkPosition.x;
-					s_Data->ChunkPositionBuffer.Y = chunkPosition.y;
+					s_Data->ChunkPositionBuffer.X = it->x;
+					s_Data->ChunkPositionBuffer.Y = it->y;
 					s_Data->ChunkPositionUniformBuffer->SetData(&s_Data->ChunkPositionBuffer, sizeof(RendererData::ChunkPositionData));
 
-					RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetVertexArrayTransparent());
+					RenderCommand::DrawIndexed(world->GetChunk(chunkPosition)->GetWaterMesh());
 				}
 			}
 		}
+		*/
 	}
 
 	void GameRenderer::RenderHUD(const Ref<RenderCamera>& renderCamera)

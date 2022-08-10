@@ -3,6 +3,7 @@
 
 #include "Minecraft/Math/Ray.h"
 #include "Minecraft/GameRenderer.h"
+#include "Minecraft/World/WorldGen.h"
 
 
 namespace Minecraft {
@@ -19,6 +20,8 @@ namespace Minecraft {
 		Application::Get().GetWindow().DisableCursor();
 
 		m_Camera = CreateRef<GameCamera>();
+		m_Camera->SetPosition({ 0, 0, 64 });
+
 		m_CameraHUD = CreateRef<OrthographicCamera>(10.0f);
 
 		float windowWidth = (float)Application::Get().GetWindow().GetWidth();
@@ -26,18 +29,23 @@ namespace Minecraft {
 		m_Camera->SetViewportSize(windowWidth, windowHeight);
 		m_CameraHUD->SetViewportSize(windowWidth, windowHeight);
 
-		uint64_t seed = Random::UInt64();
-		m_World = CreateRef<World>(seed, &m_Camera->GetPosition());
+		int seed = Random::UInt32();
+		WorldGen::Init(seed);
+
+		m_World = CreateRef<World>(&m_Camera->GetPosition());
 	}
 
 	void GameLayer::OnDetach()
 	{
+		WorldGen::Shutdown();
 		GameRenderer::Shutdown();
 	}
 
 	void GameLayer::OnUpdate(Timestep ts)
 	{
 		m_FrameTime = ts;
+
+		m_World->OnUpdate(ts);
 
 		// ---- Tick ----
 		float timeNow = Time::Get();
@@ -64,6 +72,12 @@ namespace Minecraft {
 		ImGui::Begin("Statistics");
 		ImGui::Text("Frame Time: %.2fms", m_FrameTime * 1000.0f);
 		ImGui::Text("Fps: %d", (int)(1.0f / m_FrameTime));
+
+		ImGui::Separator();
+
+		glm::vec3 playerPos = m_Camera->GetPosition();
+		ImGui::Text("Position: x: %.2f  -  y: %.2f  -  z: %.2f", playerPos.x, playerPos.y, playerPos.z);
+
 		ImGui::End();
 	}
 
@@ -103,24 +117,9 @@ namespace Minecraft {
 			RayWorldHitResult hitResult;
 			if (ray.WorldIntersection(m_World, hitResult))
 			{
-				Chunk::Position hitChunkPosition = {
-					(int)glm::floor(hitResult.HitBlock.x / 16.0f),
-					(int)glm::floor(hitResult.HitBlock.y / 16.0f)
-				};
-
-				ChunkBlock::Position hitBlockPosition = {
-					(int)glm::floor(hitResult.HitBlock.x) % 16,
-					(int)glm::floor(hitResult.HitBlock.y) % 16,
-					(int)glm::floor(hitResult.HitBlock.z)
-				};
-
-				if (hitBlockPosition.x < 0)
-					hitBlockPosition.x = 16 + hitBlockPosition.x;
-
-				if (hitBlockPosition.y < 0)
-					hitBlockPosition.y = 16 + hitBlockPosition.y;
-
-				m_World->GetChunk(hitChunkPosition)->BreakBlock(hitBlockPosition);
+				WorldBlockPosition blockPos = { hitResult.HitBlock.x, hitResult.HitBlock.y, hitResult.HitBlock.z };
+				if (m_World->HasBlock(blockPos))
+					m_World->BreakBlock(blockPos);
 			}
 		}
 

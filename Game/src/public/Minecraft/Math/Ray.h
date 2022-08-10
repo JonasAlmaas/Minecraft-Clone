@@ -11,7 +11,7 @@ namespace Minecraft {
 	{
 		bool Hit = false;
 		float HitFraction = 0.0f; // HitPosition = rayOrigin + rayDirection * rayDistance * HitFraction
-		Int3 HitBlock;
+		WorldBlockPosition HitBlock;
 	};
 
 	class Ray

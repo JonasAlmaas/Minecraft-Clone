@@ -1,6 +1,9 @@
 #include "mcpch.h"
 #include "Minecraft/World/Chunk.h"
 
+#include "Minecraft/World.h"
+#include "Minecraft/World/WorldGen.h"
+
 
 namespace Minecraft {
 
@@ -11,21 +14,17 @@ namespace Minecraft {
 		static const uint32_t MaxIndices = 6 * 6 * MaxBlocks;
 	};
 
-	Chunk::Chunk(uint64_t seed, const Position& chunkPosition)
-		: m_Seed(seed), m_ChunkPosition(chunkPosition)
+	Chunk::Chunk(const ChunkPosition& position, World* world)
+		: m_Position(position), m_World(world)
 	{
-		Noise::Specification noiseSpec;
-		noiseSpec.Seed = m_Seed;
-		Noise noise = Noise(noiseSpec);
-
-		// Generate Chunk Blocks
 		for (uint8_t x = 0; x < 16; x++)
 		{
 			for (uint8_t y = 0; y < 16; y++)
 			{
-				int64_t worldX = m_ChunkPosition.x * 16 + x;
-				int64_t worldY = m_ChunkPosition.y * 16 + y;
-				uint8_t height = (uint8_t)((noise.Get(worldX, worldY) * 0.5 + 0.5) * 64.0f) + 40;
+				int worldX = 16 * m_Position.x + x;
+				int worldY = 16 * m_Position.y + y;
+
+				uint8_t height = WorldGen::GetHeight(worldX, worldY);
 
 				// Grass block
 				m_Blocks[{ x, y, height }] = Block::Create(Block::Type::Grass);
@@ -39,7 +38,7 @@ namespace Minecraft {
 					m_Blocks[{ x, y, z }] = Block::Create(Block::Type::Stone);
 				}
 
-				// WATER
+				// Water
 				if (height < 64)
 				{
 					for (uint8_t z = height + 1; z <= 64; z++)
@@ -51,516 +50,103 @@ namespace Minecraft {
 				m_Blocks[{ x, y, 0 }] = Block::Create(Block::Type::Bedrock);
 
 				// Super flat world generation
-				//m_Blocks[{ x, y, 5 }] = Block::Create(Block::Type::Dirt);
-				//m_Blocks[{ x, y, 4 }] = Block::Create(Block::Type::Dirt);
-				//m_Blocks[{ x, y, 3 }] = Block::Create(Block::Type::Stone);
-				//m_Blocks[{ x, y, 2 }] = Block::Create(Block::Type::Stone);
-				//m_Blocks[{ x, y, 1 }] = Block::Create(Block::Type::Stone);
-				//m_Blocks[{ x, y, 0 }] = Block::Create(Block::Type::Bedrock);
+				/*
+				m_Blocks[{ x, y, 6 }] = Block::Create(Block::Type::Grass);
+				m_Blocks[{ x, y, 5 }] = Block::Create(Block::Type::Dirt);
+				m_Blocks[{ x, y, 4 }] = Block::Create(Block::Type::Dirt);
+				m_Blocks[{ x, y, 3 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 2 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 1 }] = Block::Create(Block::Type::Stone);
+				m_Blocks[{ x, y, 0 }] = Block::Create(Block::Type::Bedrock);
+				*/
 			}
 		}
-
-		GenerateVertexArray();
 	}
 
-	void Chunk::BreakBlock(ChunkBlock::Position& pos)
+	bool Chunk::HasBlock(const LocalBlockPosition& position)
 	{
-		m_Blocks.erase(pos);
-		GenerateVertexArray();
+		return m_Blocks.find(position) != m_Blocks.end();
 	}
 
-	void Chunk::GenerateVertexArray()
+	bool Chunk::HasBlock(const WorldBlockPosition& position)
 	{
-		ChunkBlock::Vertex* vertexBufferSolidBase = new ChunkBlock::Vertex[ChunkData::MaxVertices];
-		ChunkBlock::Vertex* vertexBufferSolidPtr = vertexBufferSolidBase;
+		return m_Blocks.find(position.GetLocalPosition()) != m_Blocks.end();
+	}
 
-		uint32_t solidVertexCount = 0;
-		uint32_t solidIndexCount = 0;
+	Ref<Block> Chunk::GetBlock(const LocalBlockPosition& position) const
+	{
+		return m_Blocks.at(position);
+	}
 
-		ChunkBlock::Vertex* vertexBufferTransparentBase = new ChunkBlock::Vertex[ChunkData::MaxVertices];
-		ChunkBlock::Vertex* vertexBufferTransparentPtr = vertexBufferTransparentBase;
+	Ref<Block> Chunk::GetBlock(const WorldBlockPosition& position) const
+	{
+		return m_Blocks.at(position.GetLocalPosition());
+	}
 
-		uint32_t transparentVertexCount = 0;
-		uint32_t transparentIndexCount = 0;
+	void Chunk::BreakBlock(const LocalBlockPosition& position)
+	{
+		m_Blocks.erase(position);
+		GenerateMeshes();
+	}
 
-		for (auto& [pos, block] : m_Blocks)
+	void Chunk::BreakBlock(const WorldBlockPosition& position)
+	{
+		m_Blocks.erase(position.GetLocalPosition());
+		GenerateMeshes();
+	}
+
+	void Chunk::GenerateMeshes()
+	{
+		// Solid
+		TerrainVertex* solidTerrainVertexBufferBase = new TerrainVertex[ChunkData::MaxVertices];
+		TerrainVertex* solidTerrainVertexBufferPtr = solidTerrainVertexBufferBase;
+
+		// Transparent
+		TerrainVertex* transparentTerrainVertexBufferBase = new TerrainVertex[ChunkData::MaxVertices];
+		TerrainVertex* transparentTerrainVertexBufferPtr = transparentTerrainVertexBufferBase;
+
+		// TODO: Water
+		//Block::WaterVertex* waterVertexBufferBase = new Block::WaterVertex[ChunkData::MaxVertices];
+		//Block::WaterVertex* waterVertexBufferPtr = waterVertexBufferBase;
+
+		for (auto& [blockPos, block] : m_Blocks)
 		{
 			Block::Renderpass renderpass = block->GetRenderpass();
 
+			WorldBlockPosition blockWorldPos = {
+				m_Position.x * 16 + blockPos.x,
+				m_Position.y * 16 + blockPos.y,
+				(uint8_t)blockPos.z,
+			};
+
 			switch (renderpass)
 			{
-				case Block::Renderpass::Solid:
-				{
-					// -- Top --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x, pos.y, pos.z + 1)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x, pos.y, pos.z + 1));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (pos.z == 255 || !hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::Top);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					// -- Bottom --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x, pos.y, pos.z - 1)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x, pos.y, pos.z - 1));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (pos.z == 0 || !hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::Bottom);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					// -- North --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x, pos.y + 1, pos.z)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x, pos.y + 1, pos.z));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (!hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::North);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					// -- South --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x, pos.y - 1, pos.z)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x, pos.y - 1, pos.z));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (pos.y == 0 || !hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::South);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					// -- East --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x + 1, pos.y, pos.z)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x + 1, pos.y, pos.z));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (!hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::East);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					// -- West --
-					{
-						bool hasNeighborBlock = m_Blocks.find(ChunkBlock::Position(pos.x - 1, pos.y, pos.z)) != m_Blocks.end();
-						bool hasTransparentNeighbor = false;
-
-						// Check if block is transparent
-						if (hasNeighborBlock)
-						{
-							Ref<Block> neighborBlock = m_Blocks.at(ChunkBlock::Position(pos.x - 1, pos.y, pos.z));
-							if (neighborBlock->GetRenderpass() == Block::Renderpass::Transparant)
-								hasTransparentNeighbor = true;
-						}
-
-						if (pos.x == 0 || !hasNeighborBlock || hasTransparentNeighbor)
-						{
-							uint16_t textureIndex = block->GetTextureIndex(Block::Face::West);
-							uint32_t color = VertexColor(0, 0, 0, 0);
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 0, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 1, 0);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 1, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							vertexBufferSolidPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 0, 1);
-							vertexBufferSolidPtr->TextureIndex = textureIndex;
-							vertexBufferSolidPtr->RGBV = color;
-							vertexBufferSolidPtr++;
-
-							solidVertexCount += 4;
-							solidIndexCount += 6;
-						}
-					}
-
-					break;
-				}
-
-				case Block::Renderpass::Transparant:
-				{
-					// -- Top --
-					if (pos.z == 255 || m_Blocks.find(ChunkBlock::Position(pos.x, pos.y, pos.z + 1)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Top);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					// -- Bottom --
-					if (pos.z == 0 || m_Blocks.find(ChunkBlock::Position(pos.x, pos.y, pos.z - 1)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::Bottom);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					// -- North --
-					if (m_Blocks.find(ChunkBlock::Position(pos.x, pos.y + 1, pos.z)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::North);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					// -- South --
-					if (pos.y == 0 || m_Blocks.find(ChunkBlock::Position(pos.x, pos.y - 1, pos.z)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::South);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					// -- East --
-					if (m_Blocks.find(ChunkBlock::Position(pos.x + 1, pos.y, pos.z)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::East);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 0, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 1, 1, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 1, 0, 1, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					// -- West --
-					if (pos.x == 0 || m_Blocks.find(ChunkBlock::Position(pos.x - 1, pos.y, pos.z)) == m_Blocks.end())
-					{
-						uint16_t textureIndex = block->GetTextureIndex(Block::Face::West);
-						uint32_t color = VertexColor(0, 0, 0, 0);
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 0, 0, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 0, 1, 0);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 0, 1, 1, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						vertexBufferTransparentPtr->LocalPosition = VertexPosition(pos.x, pos.y, pos.z, 0, 1, 1, 0, 1);
-						vertexBufferTransparentPtr->TextureIndex = textureIndex;
-						vertexBufferTransparentPtr->RGBV = color;
-						vertexBufferTransparentPtr++;
-
-						transparentVertexCount += 4;
-						transparentIndexCount += 6;
-					}
-
-					break;
-				}
+				case Block::Renderpass::Solid:			solidTerrainVertexBufferPtr = block->GenerateTerrainMesh(Block::Renderpass::Solid, solidTerrainVertexBufferPtr, m_World, blockWorldPos); break;
+				case Block::Renderpass::Transparant:	transparentTerrainVertexBufferPtr = block->GenerateTerrainMesh(Block::Renderpass::Transparant, transparentTerrainVertexBufferPtr, m_World, blockWorldPos); break;
+				//case Block::Renderpass::Water:			waterVertexBufferPtr = block->GenerateTerrainMesh(waterVertexBufferPtr, m_World, blockWorldPos); break;
 			}
 		}
 
-		// -- Solid --
-		if (solidVertexCount > 0)
-		{
-			m_HasSolidBlocks = true;
+		// -- Solid Terrain --
+		uint32_t solidTerrainVertexCount = (uint32_t)(solidTerrainVertexBufferPtr - solidTerrainVertexBufferBase);
+		uint32_t solidTerrainIndexCount = (uint32_t)((float)solidTerrainVertexCount * 1.5f);
 
-			m_VertexArraySolid = VertexArray::Create();
-			Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(ChunkBlock::Vertex));
+		m_HasSolidTerrain = solidTerrainVertexCount > 0;
+		if (m_HasSolidTerrain)
+		{
+			m_SolidTerrainMesh = VertexArray::Create();
+			Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(solidTerrainVertexBufferBase, solidTerrainVertexCount * sizeof(TerrainVertex));
 
 			vertexBuffer->SetLayout({
-				{ ShaderDataType::Int, "Packed Local Position" },
-				{ ShaderDataType::Int, "Texture Index" },
+				{ ShaderDataType::Int, "Pack1" },
 				{ ShaderDataType::Int, "Color RGBV" },
-				});
+			});
 
-			m_VertexArraySolid->AddVertexBuffer(vertexBuffer);
-		
-			vertexBuffer->SetData(vertexBufferSolidBase, solidVertexCount * sizeof(ChunkBlock::Vertex));
-			delete[] vertexBufferSolidBase;
+			m_SolidTerrainMesh->AddVertexBuffer(vertexBuffer);
 
-			uint32_t* indices = new uint32_t[solidIndexCount];
+			uint32_t* indices = new uint32_t[solidTerrainIndexCount];
 			uint32_t offset = 0;
-			for (uint32_t i = 0; i < solidIndexCount; i += 6)
+			for (uint32_t i = 0; i < solidTerrainIndexCount; i += 6)
 			{
 				indices[i + 0] = offset + 0;
 				indices[i + 1] = offset + 1;
@@ -573,37 +159,31 @@ namespace Minecraft {
 				offset += 4;
 			}
 
-			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, solidIndexCount);
-			m_VertexArraySolid->SetIndexBuffer(indexBuffer);
+			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, solidTerrainIndexCount);
+			m_SolidTerrainMesh->SetIndexBuffer(indexBuffer);
 			delete[] indices;
-		}
-		else
-		{
-			m_HasSolidBlocks = false;
 		}
 
 		// -- Transparent --
-		if (transparentVertexCount > 0)
-		{
-			m_HasTransparentBlocks = true;
+		uint32_t transparentTerrainVertexCount = (uint32_t)(transparentTerrainVertexBufferPtr - transparentTerrainVertexBufferBase);
+		uint32_t transparentTerrainIndexCount = (uint32_t)((float)transparentTerrainVertexCount * 1.5f);
 
-			m_VertexArrayTransparent = VertexArray::Create();
-			Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(ChunkData::MaxVertices * sizeof(ChunkBlock::Vertex));
+		m_HasTransparentTerrain = transparentTerrainVertexCount > 0;
+		if (m_HasTransparentTerrain)
+		{
+			m_TransparentTerrainMesh = VertexArray::Create();
+			Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(transparentTerrainVertexBufferBase, transparentTerrainVertexCount * sizeof(TerrainVertex));
 
 			vertexBuffer->SetLayout({
-				{ ShaderDataType::Int, "Packed Local Position" },
-				{ ShaderDataType::Int, "Texture Index" },
+				{ ShaderDataType::Int, "Pack1" },
 				{ ShaderDataType::Int, "Color RGBV" },
-				});
+			});
 
-			m_VertexArrayTransparent->AddVertexBuffer(vertexBuffer);
+			m_TransparentTerrainMesh->AddVertexBuffer(vertexBuffer);
 
-			vertexBuffer->SetData(vertexBufferTransparentBase, transparentVertexCount * sizeof(ChunkBlock::Vertex));
-			delete[] vertexBufferTransparentBase;
-
-			uint32_t* indices = new uint32_t[transparentIndexCount];
+			uint32_t* indices = new uint32_t[transparentTerrainIndexCount];
 			uint32_t offset = 0;
-			for (uint32_t i = 0; i < transparentIndexCount; i += 6)
+			for (uint32_t i = 0; i < transparentTerrainIndexCount; i += 6)
 			{
 				indices[i + 0] = offset + 0;
 				indices[i + 1] = offset + 1;
@@ -616,14 +196,13 @@ namespace Minecraft {
 				offset += 4;
 			}
 
-			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, transparentIndexCount);
-			m_VertexArrayTransparent->SetIndexBuffer(indexBuffer);
+			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, transparentTerrainIndexCount);
+			m_TransparentTerrainMesh->SetIndexBuffer(indexBuffer);
 			delete[] indices;
 		}
-		else
-		{
-			m_HasTransparentBlocks = false;
-		}
+
+		delete[] solidTerrainVertexBufferBase;
+		delete[] transparentTerrainVertexBufferBase;
 	}
 
 }

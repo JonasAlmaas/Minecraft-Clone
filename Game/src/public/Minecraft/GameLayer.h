@@ -33,6 +33,7 @@ namespace Minecraft {
 
 		float m_FrameTime = 0.0f;
 		float m_LastTickTime = 0.0f;
+
 	};
 
 }
