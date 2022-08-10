@@ -108,15 +108,34 @@ namespace Minecraft {
 
 	bool World::GenerateNewChunksFromRenderChunks()
 	{
-		for (auto& chunkPosition : *this)
+		for (ChunkPosition& chunkPosition : *this)
 		{
 			if (m_Chunks.find(chunkPosition) == m_Chunks.end())
 			{
 				m_Chunks[chunkPosition] = CreateRef<Chunk>(chunkPosition, this);
 				m_Chunks[chunkPosition]->GenerateMeshes();
+
+				// Update neighboring chunks
+				ChunkPosition northChunk = ChunkPosition(chunkPosition.x, chunkPosition.y + 1);
+				if (m_Chunks.find(northChunk) != m_Chunks.end())
+					m_Chunks[northChunk]->GenerateMeshes();
+
+				ChunkPosition southChunk = ChunkPosition(chunkPosition.x, chunkPosition.y - 1);
+				if (m_Chunks.find(southChunk) != m_Chunks.end())
+					m_Chunks[southChunk]->GenerateMeshes();
+
+				ChunkPosition eastChunk = ChunkPosition(chunkPosition.x + 1, chunkPosition.y);
+				if (m_Chunks.find(eastChunk) != m_Chunks.end())
+					m_Chunks[eastChunk]->GenerateMeshes();
+
+				ChunkPosition westChunk = ChunkPosition(chunkPosition.x - 1, chunkPosition.y);
+				if (m_Chunks.find(westChunk) != m_Chunks.end())
+					m_Chunks[westChunk]->GenerateMeshes();
+
 				return false;
 			}
 		}
+
 		return true;
 	}
 
