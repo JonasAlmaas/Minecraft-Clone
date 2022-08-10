@@ -99,14 +99,14 @@ namespace Minecraft {
 
 		using Iterator = VectorIterator<Int2>;
 
-		bool operator == (const Int2& other) const { return x == other.x && y == other.y; }
-		bool operator != (const Int2& other) const { return !(*this == other); }
+		bool operator==(const Int2& other) const { return x == other.x && y == other.y; }
+		bool operator!=(const Int2& other) const { return !(*this == other); }
 
-		Int2 operator + (const Int2& other) const { return { x + other.x, y + other.y }; }
-		Int2 operator - (const Int2& other) const { return { x - other.x, y - other.y }; }
+		Int2 operator+(const Int2& other) const { return { x + other.x, y + other.y }; }
+		Int2 operator-(const Int2& other) const { return { x - other.x, y - other.y }; }
 
-		Int2 operator + (int value) const { return { x + value, y + value }; }
-		Int2 operator - (int value) const { return { x - value, y - value }; }
+		Int2 operator+(int value) const { return { x + value, y + value }; }
+		Int2 operator-(int value) const { return { x - value, y - value }; }
 	};
 
 	struct Int3
@@ -118,14 +118,14 @@ namespace Minecraft {
 
 		using Iterator = VectorIterator<Int3>;
 
-		bool operator == (const Int3& other) const { return x == other.x && y == other.y && z == other.z; }
-		bool operator != (const Int3& other) const { return !(*this == other); }
+		bool operator==(const Int3& other) const { return x == other.x && y == other.y && z == other.z; }
+		bool operator!=(const Int3& other) const { return !(*this == other); }
 
-		Int3 operator + (const Int3& other) const { return { x + other.x, y + other.y, z + other.z }; }
-		Int3 operator - (const Int3& other) const { return { x - other.x, y - other.y, z - other.z }; }
+		Int3 operator+(const Int3& other) const { return { x + other.x, y + other.y, z + other.z }; }
+		Int3 operator-(const Int3& other) const { return { x - other.x, y - other.y, z - other.z }; }
 
-		Int3 operator + (int value) const { return { x + value, y + value, z + value }; }
-		Int3 operator - (int value) const { return { x - value, y - value, z - value }; }
+		Int3 operator+(int value) const { return { x + value, y + value, z + value }; }
+		Int3 operator-(int value) const { return { x - value, y - value, z - value }; }
 	};
 
 }
